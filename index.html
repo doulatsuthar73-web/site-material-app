@@ -7,6 +7,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800 font-sans pb-10">
 
@@ -14,18 +18,18 @@
   <header class="bg-blue-900 text-white p-4 shadow-md flex justify-between items-center flex-wrap gap-2">
     <div>
       <h1 id="appTitle" class="text-xl font-bold">Site Material Tracker</h1>
-      <p id="roleBadge" class="text-xs bg-blue-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold">Role: Admin</p>
+      <p id="roleBadge" class="text-xs bg-blue-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold">Role: Admin Mode</p>
     </div>
     <div class="flex items-center gap-2">
       <button id="authBtn" onclick="toggleAuthModal()" class="bg-yellow-500 hover:bg-yellow-600 text-black text-xs font-bold px-3 py-2 rounded shadow transition">
-        Login as Worker
+        Switch to Worker Mode
       </button>
     </div>
   </header>
 
   <div class="max-w-4xl mx-auto p-4">
 
-    <!-- Admin Settings Panel (Admin Only) -->
+    <!-- Admin Settings Panel -->
     <div id="adminSettingsPanel" class="bg-white p-4 rounded-lg shadow mb-6 border-l-4 border-blue-900">
       <h2 class="text-md font-bold text-blue-900 mb-2">⚙️ Admin Settings (Site Configuration)</h2>
       <div class="flex gap-2">
@@ -48,14 +52,19 @@
           <label class="block text-xs font-bold text-gray-600 mb-1">Quantity</label>
           <input type="number" id="itemQty" required min="1" placeholder="e.g. 10" oninput="calculateAmount()" class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">
         </div>
-        <div id="rateInputGroup">
+        
+        <!-- Rate Input (Admin Only) -->
+        <div id="rateInputGroup" class="admin-only">
           <label class="block text-xs font-bold text-gray-600 mb-1">Rate (₹)</label>
           <input type="number" id="itemRate" min="0" step="0.01" placeholder="e.g. 50" oninput="calculateAmount()" class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">
         </div>
-        <div id="amountInputGroup">
+
+        <!-- Amount Input (Admin Only) -->
+        <div id="amountInputGroup" class="admin-only">
           <label class="block text-xs font-bold text-gray-600 mb-1">Amount (₹)</label>
           <input type="text" id="itemAmount" readonly placeholder="0" class="w-full p-2 border rounded text-sm bg-gray-100 text-gray-600">
         </div>
+
         <div class="sm:col-span-2 md:col-span-4 flex justify-end mt-2">
           <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded text-sm font-bold hover:bg-green-700 transition">
             Add to List
@@ -86,7 +95,7 @@
             </tr>
           </thead>
           <tbody id="materialsTableBody">
-            <!-- Dynamic rows will be inserted here -->
+            <!-- Dynamic rows -->
           </tbody>
           <tfoot id="tableFooter" class="admin-only border-t bg-gray-50 font-bold">
             <tr>
@@ -104,8 +113,8 @@
   <!-- Access Code Modal -->
   <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
-      <h3 class="text-lg font-bold text-gray-800 mb-2">Worker Access Login</h3>
-      <p class="text-xs text-gray-500 mb-4">Enter your access code to switch role or login as Admin.</p>
+      <h3 class="text-lg font-bold text-gray-800 mb-2">Access Code Verification</h3>
+      <p class="text-xs text-gray-500 mb-4">Worker Access Code: <span class="font-bold">DHI0001</span></p>
       
       <input type="password" id="accessCodeInput" placeholder="Enter Access Code" class="w-full p-2 border rounded mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
       
@@ -117,40 +126,60 @@
   </div>
 
   <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      databaseURL: "https://site-material-app-default-rtdb.firebaseio.com"
+    };
+    
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+
     const WORKER_CODE = "DHI0001";
-    let currentRole = "admin"; // 'admin' or 'worker'
+    const ADMIN_CODE = "ADMIN";
+    let currentRole = "admin";
     let items = [];
 
-    // Initialize App
     window.onload = function() {
-      loadSiteName();
+      // Real-time listener for Site Name
+      db.ref("siteName").on("value", (snapshot) => {
+        const name = snapshot.val() || "Site Material Tracker";
+        document.getElementById("appTitle").innerText = name;
+        document.getElementById("siteNameInput").value = name;
+      });
+
+      // Real-time listener for Items List
+      db.ref("items").on("value", (snapshot) => {
+        const data = snapshot.val();
+        items = [];
+        if (data) {
+          Object.keys(data).forEach(key => {
+            items.push({ firebaseId: key, ...data[key] });
+          });
+        }
+        renderTable();
+      });
+
       renderUI();
     };
-
-    // Site Name Sync Logic (Local Storage - Updates Across All Sessions)
-    function loadSiteName() {
-      const savedSiteName = localStorage.getItem("siteName") || "Site Material Tracker";
-      document.getElementById("appTitle").innerText = savedSiteName;
-      document.getElementById("siteNameInput").value = savedSiteName;
-    }
 
     function updateSiteName() {
       const newName = document.getElementById("siteNameInput").value.trim();
       if (newName) {
-        localStorage.setItem("siteName", newName);
-        document.getElementById("appTitle").innerText = newName;
-        alert("Site name updated successfully!");
+        db.ref("siteName").set(newName);
+        alert("Site name updated globally!");
       }
     }
 
-    // Amount Calculation
     function calculateAmount() {
+      if (currentRole !== 'admin') return;
       const qty = parseFloat(document.getElementById("itemQty").value) || 0;
       const rate = parseFloat(document.getElementById("itemRate").value) || 0;
       document.getElementById("itemAmount").value = (qty * rate).toFixed(2);
     }
 
-    // Item Management
     function handleAddItem(e) {
       e.preventDefault();
       const name = document.getElementById("itemName").value.trim();
@@ -158,18 +187,17 @@
       const rate = currentRole === 'admin' ? (parseFloat(document.getElementById("itemRate").value) || 0) : 0;
       const amount = qty * rate;
 
-      items.push({ id: Date.now(), name, qty, rate, amount });
+      const newItem = { name, qty, rate, amount, timestamp: Date.now() };
+      db.ref("items").push(newItem);
+
       document.getElementById("materialForm").reset();
-      document.getElementById("itemAmount").value = "";
-      renderTable();
+      if (document.getElementById("itemAmount")) document.getElementById("itemAmount").value = "";
     }
 
-    function deleteItem(id) {
-      items = items.filter(item => item.id !== id);
-      renderTable();
+    function deleteItem(firebaseId) {
+      db.ref("items/" + firebaseId).remove();
     }
 
-    // Role Management & Access Control
     function toggleAuthModal() {
       const modal = document.getElementById("authModal");
       modal.classList.toggle("hidden");
@@ -182,7 +210,7 @@
         currentRole = "worker";
         toggleAuthModal();
         renderUI();
-      } else if (code.toUpperCase() === "ADMIN") { // Default admin fallback
+      } else if (code.toUpperCase() === ADMIN_CODE) {
         currentRole = "admin";
         toggleAuthModal();
         renderUI();
@@ -191,39 +219,29 @@
       }
     }
 
-    function switchRole(role) {
-      currentRole = role;
-      renderUI();
-    }
-
-    // Render UI based on role
     function renderUI() {
       const isAdmin = currentRole === "admin";
       const roleBadge = document.getElementById("roleBadge");
       const authBtn = document.getElementById("authBtn");
       const adminPanel = document.getElementById("adminSettingsPanel");
-      const rateGroup = document.getElementById("rateInputGroup");
-      const amountGroup = document.getElementById("amountInputGroup");
 
       if (isAdmin) {
-        roleBadge.innerText = "Role: Admin";
+        roleBadge.innerText = "Role: Admin Mode";
         roleBadge.className = "text-xs bg-blue-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold";
-        authBtn.innerText = "Switch to Worker";
-        authBtn.onclick = () => switchRole("worker");
+        authBtn.innerText = "Switch to Worker Mode";
+        authBtn.onclick = () => {
+          currentRole = "worker";
+          renderUI();
+        };
         adminPanel.classList.remove("hidden");
-        rateGroup.classList.remove("hidden");
-        amountGroup.classList.remove("hidden");
       } else {
-        roleBadge.innerText = "Role: Worker";
+        roleBadge.innerText = "Role: Worker Mode";
         roleBadge.className = "text-xs bg-green-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold";
-        authBtn.innerText = "Switch to Admin";
+        authBtn.innerText = "Switch to Admin Mode";
         authBtn.onclick = () => toggleAuthModal();
         adminPanel.classList.add("hidden");
-        rateGroup.classList.add("hidden");
-        amountGroup.classList.add("hidden");
       }
 
-      // Hide/Show Table Columns for Admin/Worker
       const adminOnlyElements = document.querySelectorAll(".admin-only");
       adminOnlyElements.forEach(el => {
         if (isAdmin) el.classList.remove("hidden");
@@ -241,7 +259,7 @@
       let total = 0;
 
       items.forEach((item, index) => {
-        total += item.amount;
+        total += item.amount || 0;
         const row = document.createElement("tr");
         row.className = "border-b hover:bg-gray-50";
 
@@ -249,10 +267,10 @@
           <td class="p-3">${index + 1}</td>
           <td class="p-3 font-semibold">${item.name}</td>
           <td class="p-3 text-center">${item.qty}</td>
-          ${isAdmin ? `<td class="p-3 text-right">₹${item.rate.toFixed(2)}</td>` : ""}
-          ${isAdmin ? `<td class="p-3 text-right font-semibold">₹${item.amount.toFixed(2)}</td>` : ""}
+          ${isAdmin ? `<td class="p-3 text-right">₹${(item.rate || 0).toFixed(2)}</td>` : ""}
+          ${isAdmin ? `<td class="p-3 text-right font-semibold">₹${(item.amount || 0).toFixed(2)}</td>` : ""}
           <td class="p-3 text-center">
-            <button onclick="deleteItem(${item.id})" class="text-red-500 hover:text-red-700 font-bold text-xs">Delete</button>
+            <button onclick="deleteItem('${item.firebaseId}')" class="text-red-500 hover:text-red-700 font-bold text-xs">Delete</button>
           </td>
         `;
         tbody.appendChild(row);
@@ -263,17 +281,16 @@
       }
     }
 
-    // Download PDF (Respects Role Privacy)
     function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      const siteTitle = localStorage.getItem("siteName") || "Site Material List";
+      const siteTitle = document.getElementById("appTitle").innerText;
       const isAdmin = currentRole === "admin";
 
       doc.setFontSize(16);
       doc.text(siteTitle, 14, 15);
       doc.setFontSize(10);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()} | Role: ${currentRole.toUpperCase()}`, 14, 22);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()} | Access Level: ${currentRole.toUpperCase()}`, 14, 22);
 
       const tableHeaders = isAdmin 
         ? [["#", "Item Name", "Qty", "Rate (INR)", "Amount (INR)"]]
@@ -281,12 +298,12 @@
 
       const tableRows = items.map((item, index) => {
         return isAdmin 
-          ? [index + 1, item.name, item.qty, item.rate.toFixed(2), item.amount.toFixed(2)]
+          ? [index + 1, item.name, item.qty, (item.rate || 0).toFixed(2), (item.amount || 0).toFixed(2)]
           : [index + 1, item.name, item.qty];
       });
 
       if (isAdmin) {
-        const grandTotal = items.reduce((sum, i) => sum + i.amount, 0);
+        const grandTotal = items.reduce((sum, i) => sum + (i.amount || 0), 0);
         tableRows.push(["", "", "", "Total:", `INR ${grandTotal.toFixed(2)}`]);
       }
 
