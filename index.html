@@ -21,7 +21,6 @@
   </header>
 
   <div class="max-w-4xl mx-auto p-4 space-y-6">
-
     <!-- Site Selector -->
     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
       <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Select Construction Site (Max 6):</label>
@@ -69,7 +68,6 @@
         </button>
       </div>
     </div>
-
   </div>
 
   <!-- Login Modal -->
@@ -149,7 +147,7 @@
     function updateAdminUI() {
       const rateCols = document.querySelectorAll('.rate-col');
       rateCols.forEach(col => col.classList.toggle('hidden', !isAdmin));
-
+      
       document.getElementById('addMaterialBtn').classList.toggle('hidden', !isAdmin);
       document.getElementById('adminBadge').classList.toggle('hidden', !isAdmin);
       
@@ -228,7 +226,6 @@
       const list = getSiteData(currentSite);
       list.push({ code, name, qty: qty || 0, unit: unit || 'Pcs', rate: rate || 0 });
       saveSiteData(currentSite, list);
-
       closeAddMaterialModal();
       renderTable();
     }
@@ -236,13 +233,13 @@
     function handlePhotoUpload(event, index) {
       const file = event.target.files[0];
       if (file) {
-        alert(Photo "${file.name}" attached successfully for item ${index + 1}!);
+        alert(`Photo "${file.name}" attached successfully for item ${index + 1}!`);
       }
     }
 
     function sendWhatsAppAlert() {
-      const text = encodeURIComponent(Hello Admin, updates uploaded for Site ${currentSite}. Please check the portal.);
-      window.open(https://wa.me/919799433172?text=${text}, '_blank');
+      const text = encodeURIComponent(`Hello Admin, updates uploaded for Site ${currentSite}. Please check the portal.`);
+      window.open(`https://wa.me/919799433172?text=${text}`, '_blank');
     }
 
     renderTable();
