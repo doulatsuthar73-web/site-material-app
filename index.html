@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Site Material Management App</title>
+  <title>Site Material Tracker</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -11,648 +11,295 @@
 <body class="bg-gray-100 min-h-screen text-gray-800 font-sans pb-10">
 
   <!-- Header -->
-  <header class="bg-blue-900 text-white p-4 shadow-md flex justify-between items-center">
+  <header class="bg-blue-900 text-white p-4 shadow-md flex justify-between items-center flex-wrap gap-2">
     <div>
-      <h1 class="text-xl font-bold">Site Material Tracker</h1>
-      <p id="userStatus" class="text-xs text-blue-200">Logged in: Guest (Worker View)</p>
+      <h1 id="appTitle" class="text-xl font-bold">Site Material Tracker</h1>
+      <p id="roleBadge" class="text-xs bg-blue-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold">Role: Admin</p>
     </div>
-    <button onclick="toggleLoginModal()" class="bg-blue-700 hover:bg-blue-800 text-xs px-3 py-2 rounded text-white font-semibold">
-      Change Login
-    </button>
+    <div class="flex items-center gap-2">
+      <button id="authBtn" onclick="toggleAuthModal()" class="bg-yellow-500 hover:bg-yellow-600 text-black text-xs font-bold px-3 py-2 rounded shadow transition">
+        Login as Worker
+      </button>
+    </div>
   </header>
 
-  <div class="max-w-4xl mx-auto p-4 space-y-6">
+  <div class="max-w-4xl mx-auto p-4">
 
-    <!-- Site Selector & Notification Settings -->
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3">
-      <div class="flex justify-between items-center">
-        <label class="block text-sm font-bold text-gray-700">Select Construction Site (Max 6):</label>
-        <span id="adminTag" class="hidden text-xs bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded">Admin Mode</span>
-      </div>
-      
+    <!-- Admin Settings Panel (Admin Only) -->
+    <div id="adminSettingsPanel" class="bg-white p-4 rounded-lg shadow mb-6 border-l-4 border-blue-900">
+      <h2 class="text-md font-bold text-blue-900 mb-2">⚙️ Admin Settings (Site Configuration)</h2>
       <div class="flex gap-2">
-        <select id="siteSelect" class="flex-1 p-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 font-medium">
-          <!-- Site Names loaded dynamically -->
-        </select>
-        
-        <!-- Only Main Admins Can Edit Site Name -->
-        <button id="editSiteBtn" onclick="renameCurrentSite()" class="hidden bg-amber-600 text-white text-xs px-3 py-2 rounded-lg font-bold hover:bg-amber-700">
-          ✏️ Edit Site Name (Admin Only)
+        <input type="text" id="siteNameInput" placeholder="Enter Site Name (e.g. ABIL Imperial 1201)" class="flex-1 p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
+        <button onclick="updateSiteName()" class="bg-blue-900 text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-800 transition">
+          Save Site Name
         </button>
-      </div>
-
-      <!-- Select Admin to Alert -->
-      <div class="pt-2 border-t border-gray-100">
-        <label class="block text-xs font-bold text-gray-600 mb-1">Send WhatsApp Notification To:</label>
-        <select id="sendToAdmin" class="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-xs font-semibold">
-          <option value="BOTH">Both (Doulat & Nikhil)</option>
-          <option value="9799433172">Doulat (9799433172)</option>
-          <option value="7620520720">Nikhil (7620520720)</option>
-        </select>
       </div>
     </div>
 
-    <!-- Admin Options Panel (Only Doulat / Nikhil) -->
-    <div id="adminPanel" class="hidden bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-3">
-      <h2 class="text-sm font-bold text-amber-900 uppercase tracking-wide">★ Admin Control Panel (Doulat & Nikhil Only)</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div class="flex gap-2">
-          <input type="tel" id="newPhone" placeholder="Worker Phone No to Grant Access" class="flex-1 text-xs p-2 border rounded">
-          <button onclick="addAccessPhone()" class="bg-amber-700 text-white text-xs px-3 py-2 rounded font-bold hover:bg-amber-800">
-            Grant Access
+    <!-- Material Entry Form -->
+    <div class="bg-white p-4 rounded-lg shadow mb-6">
+      <h2 class="text-md font-bold text-gray-700 mb-3">➕ Add New Item</h2>
+      <form id="materialForm" onsubmit="handleAddItem(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Item Name</label>
+          <input type="text" id="itemName" required placeholder="e.g. 8mm Buffer" class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Quantity</label>
+          <input type="number" id="itemQty" required min="1" placeholder="e.g. 10" oninput="calculateAmount()" class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">
+        </div>
+        <div id="rateInputGroup">
+          <label class="block text-xs font-bold text-gray-600 mb-1">Rate (₹)</label>
+          <input type="number" id="itemRate" min="0" step="0.01" placeholder="e.g. 50" oninput="calculateAmount()" class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">
+        </div>
+        <div id="amountInputGroup">
+          <label class="block text-xs font-bold text-gray-600 mb-1">Amount (₹)</label>
+          <input type="text" id="itemAmount" readonly placeholder="0" class="w-full p-2 border rounded text-sm bg-gray-100 text-gray-600">
+        </div>
+        <div class="sm:col-span-2 md:col-span-4 flex justify-end mt-2">
+          <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded text-sm font-bold hover:bg-green-700 transition">
+            Add to List
           </button>
         </div>
-        <button onclick="toggleAddMaterialModal()" class="bg-emerald-700 text-white text-xs px-3 py-2 rounded font-bold hover:bg-emerald-800">
-          + Add New Material
-        </button>
-      </div>
+      </form>
     </div>
 
-    <!-- Material Catalog List -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-        <h2 class="font-bold text-gray-800">Master Material List</h2>
-        <span id="rateVisibilityBadge" class="text-xs px-2.5 py-1 rounded-full font-bold bg-gray-200 text-gray-700">
-          Rates & Amount Hidden (Worker View)
-        </span>
+    <!-- Material List Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <div class="p-4 border-b flex justify-between items-center flex-wrap gap-2">
+        <h2 class="text-md font-bold text-gray-700">📋 Material Requirement List</h2>
+        <button onclick="downloadPDF()" class="bg-red-600 text-white text-xs font-bold px-3 py-2 rounded hover:bg-red-700 transition flex items-center gap-1">
+          📄 Download PDF
+        </button>
       </div>
 
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs md:text-sm">
-          <thead class="bg-blue-50 text-blue-900 font-bold border-b">
-            <tr>
-              <th class="p-3">Code</th>
-              <th class="p-3">Material Name</th>
-              <th class="p-3">Select Size / Unit</th>
-              <th class="p-3 rate-col hidden">Rate (₹)</th>
-              <th class="p-3 rate-col hidden">Amount (₹)</th>
-              <th class="p-3">Qty Required</th>
-              <th class="p-3">Photo Upload</th>
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="bg-gray-100 text-gray-700 border-b">
+              <th class="p-3">#</th>
+              <th class="p-3">Item Name</th>
+              <th class="p-3 text-center">Qty</th>
+              <th class="p-3 text-right admin-only">Rate (₹)</th>
+              <th class="p-3 text-right admin-only">Amount (₹)</th>
+              <th class="p-3 text-center">Action</th>
             </tr>
           </thead>
-          <tbody id="materialsTableBody" class="divide-y divide-gray-100">
+          <tbody id="materialsTableBody">
+            <!-- Dynamic rows will be inserted here -->
           </tbody>
+          <tfoot id="tableFooter" class="admin-only border-t bg-gray-50 font-bold">
+            <tr>
+              <td colspan="4" class="p-3 text-right text-gray-700">Total Amount:</td>
+              <td id="grandTotal" class="p-3 text-right text-blue-900">₹0.00</td>
+              <td></td>
+            </tr>
+          </tfoot>
         </table>
       </div>
-
-      <!-- Action Footer -->
-      <div class="p-4 bg-gray-50 border-t flex flex-wrap gap-3 justify-between items-center">
-        <div id="adminTotalBadge" class="hidden text-sm font-bold text-emerald-800 bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-300">
-          Estimated Total: <span id="totalAmountText">₹0</span>
-        </div>
-
-        <div class="flex gap-2 ml-auto">
-          <button onclick="generatePDFAndNotify()" class="bg-green-600 hover:bg-green-700 text-white text-sm font-bold px-5 py-2.5 rounded-lg shadow flex items-center gap-2">
-            📲 Submit & Send WhatsApp Alert
-          </button>
-        </div>
-      </div>
     </div>
 
   </div>
 
-  <!-- Login Modal with OTP Code -->
-  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl p-6 max-w-sm w-full space-y-4">
-      <h3 class="text-lg font-bold text-gray-800">Login via Access Code</h3>
+  <!-- Access Code Modal -->
+  <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
+      <h3 class="text-lg font-bold text-gray-800 mb-2">Worker Access Login</h3>
+      <p class="text-xs text-gray-500 mb-4">Enter your access code to switch role or login as Admin.</p>
       
-      <!-- Phone Step -->
-      <div id="phoneStep" class="space-y-3">
-        <p class="text-xs text-gray-500">Enter Admin Number OR Admin Grant Granted Mobile No.</p>
-        <input type="tel" id="loginPhone" placeholder="Enter Mobile Number" class="w-full p-2.5 border rounded-lg text-sm">
-        <button type="button" onclick="sendOTP()" class="w-full bg-blue-900 text-white py-2.5 rounded-lg font-bold text-sm hover:bg-blue-800">
-          Continue
-        </button>
-      </div>
-
-      <!-- OTP Step -->
-      <div id="otpStep" class="hidden space-y-3">
-        <p class="text-xs text-green-700 font-semibold" id="otpHelpText">Enter Access Code sent by Admin:</p>
-        <input type="text" id="otpInput" placeholder="Enter 4-digit Code" class="w-full p-2.5 border rounded-lg text-sm text-center font-bold tracking-widest">
-        <button type="button" onclick="verifyOTP()" class="w-full bg-emerald-700 text-white py-2.5 rounded-lg font-bold text-sm hover:bg-emerald-800">
-          Verify Code & Open App
-        </button>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Add New Material Modal -->
-  <div id="addMaterialModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl p-6 max-w-sm w-full space-y-3">
-      <h3 class="text-base font-bold text-gray-800">Add New Material Item</h3>
-      <div>
-        <label class="text-xs font-semibold text-gray-600">Material Name:</label>
-        <input type="text" id="newMatName" placeholder="e.g. Fevicol Marine" class="w-full p-2 border rounded text-xs mt-1">
-      </div>
-      <div>
-        <label class="text-xs font-semibold text-gray-600">Size / Unit (comma separated):</label>
-        <input type="text" id="newMatSizes" placeholder="e.g. 8*4, 7*4 OR KG" class="w-full p-2 border rounded text-xs mt-1">
-      </div>
-      <div>
-        <label class="text-xs font-semibold text-gray-600">Rate (Numerical value):</label>
-        <input type="text" id="newMatRate" placeholder="e.g. 250" class="w-full p-2 border rounded text-xs mt-1">
-      </div>
-      <div class="flex gap-2 pt-2">
-        <button onclick="toggleAddMaterialModal()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded text-xs font-bold">Cancel</button>
-        <button onclick="addNewMaterial()" class="flex-1 bg-emerald-700 text-white py-2 rounded text-xs font-bold">Save Material</button>
+      <input type="password" id="accessCodeInput" placeholder="Enter Access Code" class="w-full p-2 border rounded mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
+      
+      <div class="flex justify-end gap-2">
+        <button onclick="toggleAuthModal()" class="px-4 py-2 text-xs font-bold text-gray-500 hover:bg-gray-100 rounded">Cancel</button>
+        <button onclick="verifyAccessCode()" class="px-4 py-2 text-xs font-bold bg-blue-900 text-white rounded hover:bg-blue-800">Submit</button>
       </div>
     </div>
   </div>
 
   <script>
-    let materials = [
-      { id: 1, code: "M-101", name: "18mm Plywood", sizes: ["8*4", "7*4"], rate: "60" },
-      { id: 2, code: "M-102", name: "12mm Plywood", sizes: ["8*4", "7*4"], rate: "45" },
-      { id: 3, code: "M-103", name: "08mm Plywood", sizes: ["8*4", "7*4"], rate: "40" },
-      { id: 4, code: "M-104", name: "06mm Plywood", sizes: ["8*4", "7*4"], rate: "30" },
-      { id: 5, code: "M-105", name: "18mm HDHMR Sheet", sizes: ["8*4"], rate: "60" },
-      { id: 6, code: "M-106", name: "12mm HDHMR Sheet", sizes: ["8*4"], rate: "45" },
-      { id: 7, code: "M-107", name: "08mm HDHMR Sheet", sizes: ["8*4"], rate: "32" },
-      { id: 8, code: "M-108", name: "06mm HDHMR Sheet", sizes: ["8*4"], rate: "28" },
-      { id: 9, code: "M-109", name: "04mm HDHMR Sheet", sizes: ["8*4"], rate: "25" },
-      { id: 10, code: "M-110", name: "0.8mm Internal Laminate White", sizes: ["8*4"], rate: "500" },
-      { id: 11, code: "M-111", name: "0.8mm Internal Laminate Fabric", sizes: ["8*4"], rate: "550" },
-      { id: 12, code: "M-112", name: "0.8mm Internal Laminate other", sizes: ["8*4"], rate: "500" },
-      { id: 13, code: "M-113", name: "Fevicol", sizes: ["KG"], rate: "220" },
-      { id: 14, code: "M-114", name: "Abro tape Roll", sizes: ["Nos"], rate: "120" },
-      { id: 15, code: "M-115", name: "Nails 19 *3/4", sizes: ["kg"], rate: "90" },
-      { id: 16, code: "M-116", name: "Nails 17 *3/4", sizes: ["kg"], rate: "90" },
-      { id: 17, code: "M-117", name: "Nails 17 *1", sizes: ["kg"], rate: "90" },
-      { id: 18, code: "M-118", name: "Nails 17 *1.1/4", sizes: ["kg"], rate: "90" },
-      { id: 19, code: "M-119", name: "Nails 14 *1.3/4", sizes: ["kg"], rate: "90" },
-      { id: 20, code: "M-120", name: "Scrows 10*100 star", sizes: ["1 Box =100"], rate: "400" },
-      { id: 21, code: "M-121", name: "Scrows 10*75 star", sizes: ["1 Box =100"], rate: "400" },
-      { id: 22, code: "M-122", name: "Scrows 8*75 star", sizes: ["1 Box =100"], rate: "400" },
-      { id: 23, code: "M-123", name: "Scrows 8*60 star", sizes: ["1 Box =100"], rate: "400" },
-      { id: 24, code: "M-124", name: "Scrows 8*38 star", sizes: ["1 Box =100"], rate: "400" },
-      { id: 25, code: "M-125", name: "Scrows 8*32 star", sizes: ["1 Box =100"], rate: "400" },
-      { id: 26, code: "M-126", name: "Scrows 6*32 star", sizes: ["1 Box =100"], rate: "400" },
-      { id: 27, code: "M-127", name: "Scrows 6*19 star", sizes: ["1 Box =100"], rate: "400" },
-      { id: 28, code: "M-128", name: "Scrows 6*13 star", sizes: ["1 Box =100"], rate: "400" },
-      { id: 29, code: "M-129", name: "Shelf thared Scrows 6*32", sizes: ["1 Box =100"], rate: "400" },
-      { id: 30, code: "M-130", name: "Shelf thared Scrows 6*19", sizes: ["1 Box =100"], rate: "400" },
-      { id: 31, code: "M-131", name: "6mm Rawal pagal", sizes: ["1 Box =100"], rate: "400" },
-      { id: 32, code: "M-132", name: "Carcass Edge Banding 0.8mm", sizes: ["MTR"], rate: "25" }
-    ];
+    const WORKER_CODE = "DHI0001";
+    let currentRole = "admin"; // 'admin' or 'worker'
+    let items = [];
 
-    let currentRole = 'WORKER';
-    let currentUser = 'Guest Worker';
-    let uploadedImages = {};
-    let pendingPhone = '';
+    // Initialize App
+    window.onload = function() {
+      loadSiteName();
+      renderUI();
+    };
 
-    // Load or Initialize Site Names & Allowed Access Codes
-    let defaultSites = ["Site 1: Main Site", "Site 2: Project Baner", "Site 3: Project Wakad", "Site 4: Site Four", "Site 5: Site Five", "Site 6: Site Six"];
-    let siteNames = JSON.parse(localStorage.getItem('site_names_list')) || defaultSites;
-    let allowedAccessMap = JSON.parse(localStorage.getItem('allowed_access_map')) || {};
-
-    function renderSiteOptions() {
-      const siteSelect = document.getElementById('siteSelect');
-      if (!siteSelect) return;
-      siteSelect.innerHTML = '';
-      siteNames.forEach((siteName, idx) => {
-        const opt = document.createElement('option');
-        opt.value = idx;
-        opt.innerText = siteName;
-        siteSelect.appendChild(opt);
-      });
+    // Site Name Sync Logic (Local Storage - Updates Across All Sessions)
+    function loadSiteName() {
+      const savedSiteName = localStorage.getItem("siteName") || "Site Material Tracker";
+      document.getElementById("appTitle").innerText = savedSiteName;
+      document.getElementById("siteNameInput").value = savedSiteName;
     }
 
-    function renderMaterials() {
-      const tbody = document.getElementById('materialsTableBody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
+    function updateSiteName() {
+      const newName = document.getElementById("siteNameInput").value.trim();
+      if (newName) {
+        localStorage.setItem("siteName", newName);
+        document.getElementById("appTitle").innerText = newName;
+        alert("Site name updated successfully!");
+      }
+    }
 
-      materials.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-gray-50';
+    // Amount Calculation
+    function calculateAmount() {
+      const qty = parseFloat(document.getElementById("itemQty").value) || 0;
+      const rate = parseFloat(document.getElementById("itemRate").value) || 0;
+      document.getElementById("itemAmount").value = (qty * rate).toFixed(2);
+    }
 
-        let sizeOptionsHTML = '';
-        if (item.sizes && item.sizes.length > 1) {
-          sizeOptionsHTML = `<select id="size-${item.id}" onchange="calculateTotal()" class="p-1 border border-blue-400 bg-white rounded font-bold text-xs text-blue-900 focus:outline-none">${item.sizes.map(s => `<option value="${s}">${s}</option>`).join('')}</select>`;
-        } else {
-          sizeOptionsHTML = `<span id="size-${item.id}" class="text-gray-700 font-medium">${item.sizes ? item.sizes[0] : ''}</span>`;
-        }
+    // Item Management
+    function handleAddItem(e) {
+      e.preventDefault();
+      const name = document.getElementById("itemName").value.trim();
+      const qty = parseFloat(document.getElementById("itemQty").value);
+      const rate = currentRole === 'admin' ? (parseFloat(document.getElementById("itemRate").value) || 0) : 0;
+      const amount = qty * rate;
 
-        // Rate & Rate Edit Option (Strictly Hidden for Granted Workers)
-        let rateHTML = `<span class="font-semibold text-emerald-700">₹${item.rate}</span>`;
-        if (currentRole === 'ADMIN') {
-          rateHTML += ` <button onclick="editRate(${item.id})" class="text-xs text-amber-700 font-bold hover:underline ml-1">✏️ Edit</button>`;
-        }
+      items.push({ id: Date.now(), name, qty, rate, amount });
+      document.getElementById("materialForm").reset();
+      document.getElementById("itemAmount").value = "";
+      renderTable();
+    }
 
-        tr.innerHTML = `
-          <td class="p-3 font-semibold text-gray-500">${item.code}</td>
-          <td class="p-3 font-bold text-gray-800">${item.name}</td>
-          <td class="p-3">${sizeOptionsHTML}</td>
-          <td class="p-3 rate-col ${currentRole === 'ADMIN' ? '' : 'hidden'}">${rateHTML}</td>
-          <td class="p-3 rate-col ${currentRole === 'ADMIN' ? '' : 'hidden'} font-bold text-emerald-800" id="amount-${item.id}">₹0</td>
-          <td class="p-3"><input type="number" id="qty-${item.id}" oninput="calculateTotal()" placeholder="0" class="w-16 p-1 border rounded text-center"></td>
-          <td class="p-3"><input type="file" accept="image/*" onchange="handleImageUpload(event, ${item.id})" class="text-xs w-36"></td>
+    function deleteItem(id) {
+      items = items.filter(item => item.id !== id);
+      renderTable();
+    }
+
+    // Role Management & Access Control
+    function toggleAuthModal() {
+      const modal = document.getElementById("authModal");
+      modal.classList.toggle("hidden");
+      document.getElementById("accessCodeInput").value = "";
+    }
+
+    function verifyAccessCode() {
+      const code = document.getElementById("accessCodeInput").value.trim();
+      if (code === WORKER_CODE) {
+        currentRole = "worker";
+        toggleAuthModal();
+        renderUI();
+      } else if (code.toUpperCase() === "ADMIN") { // Default admin fallback
+        currentRole = "admin";
+        toggleAuthModal();
+        renderUI();
+      } else {
+        alert("Invalid Access Code!");
+      }
+    }
+
+    function switchRole(role) {
+      currentRole = role;
+      renderUI();
+    }
+
+    // Render UI based on role
+    function renderUI() {
+      const isAdmin = currentRole === "admin";
+      const roleBadge = document.getElementById("roleBadge");
+      const authBtn = document.getElementById("authBtn");
+      const adminPanel = document.getElementById("adminSettingsPanel");
+      const rateGroup = document.getElementById("rateInputGroup");
+      const amountGroup = document.getElementById("amountInputGroup");
+
+      if (isAdmin) {
+        roleBadge.innerText = "Role: Admin";
+        roleBadge.className = "text-xs bg-blue-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold";
+        authBtn.innerText = "Switch to Worker";
+        authBtn.onclick = () => switchRole("worker");
+        adminPanel.classList.remove("hidden");
+        rateGroup.classList.remove("hidden");
+        amountGroup.classList.remove("hidden");
+      } else {
+        roleBadge.innerText = "Role: Worker";
+        roleBadge.className = "text-xs bg-green-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold";
+        authBtn.innerText = "Switch to Admin";
+        authBtn.onclick = () => toggleAuthModal();
+        adminPanel.classList.add("hidden");
+        rateGroup.classList.add("hidden");
+        amountGroup.classList.add("hidden");
+      }
+
+      // Hide/Show Table Columns for Admin/Worker
+      const adminOnlyElements = document.querySelectorAll(".admin-only");
+      adminOnlyElements.forEach(el => {
+        if (isAdmin) el.classList.remove("hidden");
+        else el.classList.add("hidden");
+      });
+
+      renderTable();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById("materialsTableBody");
+      const isAdmin = currentRole === "admin";
+      tbody.innerHTML = "";
+
+      let total = 0;
+
+      items.forEach((item, index) => {
+        total += item.amount;
+        const row = document.createElement("tr");
+        row.className = "border-b hover:bg-gray-50";
+
+        row.innerHTML = `
+          <td class="p-3">${index + 1}</td>
+          <td class="p-3 font-semibold">${item.name}</td>
+          <td class="p-3 text-center">${item.qty}</td>
+          ${isAdmin ? `<td class="p-3 text-right">₹${item.rate.toFixed(2)}</td>` : ""}
+          ${isAdmin ? `<td class="p-3 text-right font-semibold">₹${item.amount.toFixed(2)}</td>` : ""}
+          <td class="p-3 text-center">
+            <button onclick="deleteItem(${item.id})" class="text-red-500 hover:text-red-700 font-bold text-xs">Delete</button>
+          </td>
         `;
-        tbody.appendChild(tr);
+        tbody.appendChild(row);
       });
 
-      calculateTotal();
-    }
-
-    function addAccessPhone() {
-      if (currentRole !== 'ADMIN') {
-        alert("Sirf Admin hi access grant kar sakte hain!");
-        return;
-      }
-
-      const phoneInput = document.getElementById('newPhone');
-      const phone = phoneInput ? phoneInput.value.trim() : '';
-      if (!phone || phone.length < 10) {
-        alert("Kripya sahi 10-digit mobile number enter karein!");
-        return;
-      }
-
-      // Auto-generate 4-digit OTP Code for worker
-      const generatedCode = Math.floor(1000 + Math.random() * 9000).toString();
-      allowedAccessMap[phone] = generatedCode;
-      localStorage.setItem('allowed_access_map', JSON.stringify(allowedAccessMap));
-
-      alert(`✅ Mobile ${phone} ko access mil gaya hai!\n\n🔑 Worker Login Access Code: ${generatedCode}\n\nYe Code worker ke saath share karein.`);
-      phoneInput.value = '';
-    }
-
-    function sendOTP() {
-      const phoneInput = document.getElementById('loginPhone');
-      const phone = phoneInput ? phoneInput.value.trim() : '';
-
-      if (!phone) {
-        alert('Kripya mobile number enter karein');
-        return;
-      }
-
-      const isAdmin = (phone === '9799433172' || phone === '7620520720');
-      const isAllowedWorker = allowedAccessMap.hasOwnProperty(phone);
-
-      if (!isAdmin && !isAllowedWorker) {
-        alert('Access Denied! Ye mobile number Admin dwara granted nahi hai.');
-        return;
-      }
-
-      pendingPhone = phone;
-      document.getElementById('phoneStep').classList.add('hidden');
-      document.getElementById('otpStep').classList.remove('hidden');
-
-      const helpEl = document.getElementById('otpHelpText');
       if (isAdmin) {
-        helpEl.innerText = "Admin Default Passcode: 1234";
-      } else {
-        helpEl.innerText = "Admin dwara diya gaya 4-digit Access Code enter karein:";
+        document.getElementById("grandTotal").innerText = `₹${total.toFixed(2)}`;
       }
     }
 
-    function verifyOTP() {
-      const otp = document.getElementById('otpInput').value.trim();
-
-      const isAdmin = (pendingPhone === '9799433172' || pendingPhone === '7620520720');
-
-      if (isAdmin) {
-        if (otp !== '1234') {
-          alert('Galat Admin Passcode! Correct code is 1234');
-          return;
-        }
-        currentRole = 'ADMIN';
-        currentUser = pendingPhone === '9799433172' ? 'Doulat (Admin)' : 'Nikhil (Admin)';
-      } else {
-        const requiredCode = allowedAccessMap[pendingPhone];
-        if (otp !== requiredCode) {
-          alert('Galat Code! Admin dwara diya gaya sahi Code enter karein.');
-          return;
-        }
-        currentRole = 'WORKER';
-        currentUser = 'Worker (' + pendingPhone + ')';
-      }
-
-      updateUI();
-      toggleLoginModal();
-    }
-
-    function editRate(id) {
-      if (currentRole !== 'ADMIN') {
-        alert("Sirf Admin (Doulat ya Nikhil) hi Rate change kar sakte hain!");
-        return;
-      }
-
-      const item = materials.find(m => m.id === id);
-      if (!item) return;
-
-      const newRate = prompt(`Naya Rate enter karein (${item.name} ke liye):`, item.rate);
-      if (newRate && newRate.trim() !== "") {
-        item.rate = newRate.trim();
-        renderMaterials();
-        alert("Rate update ho gaya!");
-      }
-    }
-
-    function renameCurrentSite() {
-      if (currentRole !== 'ADMIN') {
-        alert("Sirf Admin (Doulat ya Nikhil) hi Site Name badal sakte hain!");
-        return;
-      }
-
-      const select = document.getElementById('siteSelect');
-      const selectedIndex = select.selectedIndex;
-      const currentName = siteNames[selectedIndex];
-
-      const newName = prompt("Naya Site Name likhein (Ye sabke app me update hoga):", currentName);
-      if (newName && newName.trim() !== "") {
-        siteNames[selectedIndex] = newName.trim();
-        localStorage.setItem('site_names_list', JSON.stringify(siteNames));
-        renderSiteOptions();
-        select.selectedIndex = selectedIndex;
-        alert("Site Name badal diya gaya hai aur sabke app me sync ho gaya hai!");
-      }
-    }
-
-    function calculateLineTotal(item) {
-      const qtyInput = document.getElementById(`qty-${item.id}`);
-      const qty = qtyInput ? parseInt(qtyInput.value) || 0 : 0;
-      const rateNum = parseFloat(item.rate) || 0;
-
-      if (qty <= 0) return { qty: 0, lineTotal: 0, totalSqft: 0, selectedSize: '' };
-
-      let selectedSize = '';
-      const sizeElement = document.getElementById(`size-${item.id}`);
-      if (sizeElement && sizeElement.tagName === 'SELECT') {
-        selectedSize = sizeElement.value;
-      } else if (sizeElement) {
-        selectedSize = sizeElement.innerText;
-      }
-
-      let lineTotal = 0;
-      let totalSqft = 0;
-
-      if (selectedSize.includes('*') && !selectedSize.toLowerCase().includes('box')) {
-        const parts = selectedSize.split('*').map(p => parseFloat(p.trim()));
-        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-          totalSqft = parts[0] * parts[1] * qty;
-          lineTotal = totalSqft * rateNum;
-        } else {
-          lineTotal = qty * rateNum;
-        }
-      } else {
-        lineTotal = qty * rateNum;
-      }
-
-      return { qty, lineTotal, totalSqft, selectedSize };
-    }
-
-    function calculateTotal() {
-      let grandTotal = 0;
-      materials.forEach(item => {
-        const { lineTotal } = calculateLineTotal(item);
-        grandTotal += lineTotal;
-
-        const amtEl = document.getElementById(`amount-${item.id}`);
-        if (amtEl) {
-          amtEl.innerText = `₹${lineTotal.toLocaleString('en-IN', {maximumFractionDigits: 2})}`;
-        }
-      });
-
-      const totalEl = document.getElementById('totalAmountText');
-      if (totalEl) {
-        totalEl.innerText = `₹${grandTotal.toLocaleString('en-IN', {maximumFractionDigits: 2})}`;
-      }
-    }
-
-    function handleImageUpload(event, id) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          uploadedImages[id] = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    function generatePDFAndNotify() {
+    // Download PDF (Respects Role Privacy)
+    function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-
-      const siteSelect = document.getElementById('siteSelect');
-      const selectedSiteText = siteSelect.options[siteSelect.selectedIndex].text;
-      const dateStr = new Date().toLocaleDateString();
-
-      let selectedItems = [];
-      let whatsappSummary = [];
-      let grandTotal = 0;
-      let hasImages = false;
-
-      materials.forEach(item => {
-        const { qty, lineTotal, totalSqft, selectedSize } = calculateLineTotal(item);
-
-        if (qty > 0) {
-          grandTotal += lineTotal;
-
-          const rateNum = parseFloat(item.rate) || 0;
-          const imgUploaded = uploadedImages[item.id] ? "Yes (Attached)" : "No";
-          if (uploadedImages[item.id]) hasImages = true;
-
-          let sizeDetailStr = selectedSize;
-          if (totalSqft > 0) {
-            sizeDetailStr += ` (${totalSqft} Sq.Ft Total)`;
-          }
-
-          if (currentRole === 'ADMIN') {
-            selectedItems.push([
-              item.code, 
-              item.name, 
-              sizeDetailStr, 
-              qty, 
-              `₹${rateNum}`, 
-              `₹${lineTotal.toLocaleString('en-IN')}`, 
-              imgUploaded
-            ]);
-          } else {
-            selectedItems.push([item.code, item.name, sizeDetailStr, qty, imgUploaded]);
-          }
-
-          whatsappSummary.push(`• ${item.name} (${selectedSize}): Qty ${qty}`);
-        }
-      });
-
-      if (selectedItems.length === 0) {
-        alert("Kripya kam se kam ek material ki Quantity enter karein!");
-        return;
-      }
+      const siteTitle = localStorage.getItem("siteName") || "Site Material List";
+      const isAdmin = currentRole === "admin";
 
       doc.setFontSize(16);
-      doc.setTextColor(30, 58, 138);
-      doc.text("SITE MATERIAL REQUISITION DEMAND", 14, 18);
-
+      doc.text(siteTitle, 14, 15);
       doc.setFontSize(10);
-      doc.setTextColor(50, 50, 50);
-      doc.text(`Site Name: ${selectedSiteText}`, 14, 26);
-      doc.text(`Date: ${dateStr}`, 14, 32);
-      doc.text(`Requested By: ${currentUser}`, 14, 38);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()} | Role: ${currentRole.toUpperCase()}`, 14, 22);
 
-      let headers = ['Code', 'Material Name', 'Size / Unit', 'Qty Req', 'Photo Attached'];
-      if (currentRole === 'ADMIN') {
-        headers = ['Code', 'Material Name', 'Size / Unit', 'Qty Req', 'Rate', 'Total Amount', 'Photo Attached'];
+      const tableHeaders = isAdmin 
+        ? [["#", "Item Name", "Qty", "Rate (INR)", "Amount (INR)"]]
+        : [["#", "Item Name", "Qty"]];
+
+      const tableRows = items.map((item, index) => {
+        return isAdmin 
+          ? [index + 1, item.name, item.qty, item.rate.toFixed(2), item.amount.toFixed(2)]
+          : [index + 1, item.name, item.qty];
+      });
+
+      if (isAdmin) {
+        const grandTotal = items.reduce((sum, i) => sum + i.amount, 0);
+        tableRows.push(["", "", "", "Total:", `INR ${grandTotal.toFixed(2)}`]);
       }
 
       doc.autoTable({
-        startY: 44,
-        head: [headers],
-        body: selectedItems,
-        headStyles: { fillColor: [30, 58, 138] },
-        theme: 'striped'
+        startY: 28,
+        head: tableHeaders,
+        body: tableRows,
+        theme: 'striped',
+        headStyles: { fillStyle: [30, 58, 138] }
       });
 
-      let finalY = doc.lastAutoTable.finalY || 50;
-      if (currentRole === 'ADMIN') {
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(16, 185, 129);
-        doc.text(`Estimated Grand Total: Rs. ${grandTotal.toLocaleString('en-IN')}`, 14, finalY + 10);
-      }
-
-      if (hasImages) {
-        doc.addPage();
-        doc.setFontSize(14);
-        doc.setTextColor(30, 58, 138);
-        doc.text("ATTACHED MATERIAL PHOTOS (For Supplier Reference)", 14, 18);
-
-        let imgY = 28;
-        materials.forEach(item => {
-          if (uploadedImages[item.id]) {
-            if (imgY > 230) {
-              doc.addPage();
-              imgY = 20;
-            }
-            doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Material: ${item.name} (${item.code})`, 14, imgY);
-            doc.addImage(uploadedImages[item.id], 'JPEG', 14, imgY + 4, 60, 45);
-            imgY += 55;
-          }
-        });
-      }
-
-      doc.save(`Material_Demand_${selectedSiteText.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`);
-
-      const sendOption = document.getElementById('sendToAdmin').value;
-      let targetNumbers = [];
-
-      if (sendOption === 'BOTH') {
-        targetNumbers = ["9799433172", "7620520720"];
-      } else {
-        targetNumbers = [sendOption];
-      }
-
-      let textMsg = `🚨 *NEW MATERIAL DEMAND LIST SUBMITTED* 🚨\n\n`;
-      textMsg += `📌 *Site:* ${selectedSiteText}\n`;
-      textMsg += `👤 *By:* ${currentUser}\n`;
-      textMsg += `📅 *Date:* ${dateStr}\n\n`;
-      textMsg += `📦 *Items Requested:*\n${whatsappSummary.join('\n')}\n\n`;
-      if (currentRole === 'ADMIN') {
-        textMsg += `💰 *Total Estimated Amount:* ₹${grandTotal.toLocaleString('en-IN')}\n\n`;
-      }
-      textMsg += `📄 *PDF downloaded. Please check & forward to Supplier!*`;
-
-      alert("PDF download ho gaya hai! Ab WhatsApp par alert send kiya jaa raha hai.");
-
-      targetNumbers.forEach(phone => {
-        const whatsappURL = `https://api.whatsapp.com/send?phone=91${phone}&text=${encodeURIComponent(textMsg)}`;
-        window.open(whatsappURL, '_blank');
-      });
+      doc.save(`${siteTitle.replace(/\s+/g, '_')}_Material_List.pdf`);
     }
-
-    function toggleAddMaterialModal() {
-      document.getElementById('addMaterialModal').classList.toggle('hidden');
-    }
-
-    function addNewMaterial() {
-      if (currentRole !== 'ADMIN') {
-        alert("Sirf Admin (Doulat ya Nikhil) hi naya material add kar sakte hain!");
-        return;
-      }
-
-      const name = document.getElementById('newMatName').value.trim();
-      const sizesInput = document.getElementById('newMatSizes').value.trim();
-      const rate = document.getElementById('newMatRate').value.trim();
-
-      if (!name || !sizesInput || !rate) {
-        return alert("Sabhi fields bharein!");
-      }
-
-      const sizes = sizesInput.split(',').map(s => s.trim());
-      const newId = materials.length + 1;
-      const code = `M-${100 + newId}`;
-
-      materials.push({
-        id: newId,
-        code: code,
-        name: name,
-        sizes: sizes,
-        rate: rate
-      });
-
-      document.getElementById('newMatName').value = '';
-      document.getElementById('newMatSizes').value = '';
-      document.getElementById('newMatRate').value = '';
-
-      toggleAddMaterialModal();
-      renderMaterials();
-      alert("Naya material add ho gaya!");
-    }
-
-    function toggleLoginModal() {
-      const modal = document.getElementById('loginModal');
-      if (modal) {
-        modal.classList.toggle('hidden');
-        document.getElementById('phoneStep').classList.remove('hidden');
-        document.getElementById('otpStep').classList.add('hidden');
-      }
-    }
-
-    function updateUI() {
-      const userStatusEl = document.getElementById('userStatus');
-      if (userStatusEl) userStatusEl.innerText = 'Logged in: ' + currentUser;
-
-      const rateBadge = document.getElementById('rateVisibilityBadge');
-      const adminPanel = document.getElementById('adminPanel');
-      const editSiteBtn = document.getElementById('editSiteBtn');
-      const adminTag = document.getElementById('adminTag');
-      const adminTotalBadge = document.getElementById('adminTotalBadge');
-
-      const rateCols = document.querySelectorAll('.rate-col');
-
-      if (currentRole === 'ADMIN') {
-        if (rateBadge) {
-          rateBadge.innerText = 'Rates & Amounts Visible (Admin View)';
-          rateBadge.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800';
-        }
-        if (adminPanel) adminPanel.classList.remove('hidden');
-        if (editSiteBtn) editSiteBtn.classList.remove('hidden');
-        if (adminTag) adminTag.classList.remove('hidden');
-        if (adminTotalBadge) adminTotalBadge.classList.remove('hidden');
-        rateCols.forEach(col => col.classList.remove('hidden'));
-      } else {
-        if (rateBadge) {
-          rateBadge.innerText = 'Rates & Amounts Hidden (Worker View)';
-          rateBadge.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-gray-200 text-gray-700';
-        }
-        if (adminPanel) adminPanel.classList.add('hidden');
-        if (editSiteBtn) editSiteBtn.classList.add('hidden');
-        if (adminTag) adminTag.classList.add('hidden');
-        if (adminTotalBadge) adminTotalBadge.classList.add('hidden');
-        rateCols.forEach(col => col.classList.add('hidden'));
-      }
-
-      renderMaterials();
-    }
-
-    window.onload = function() {
-      renderSiteOptions();
-      renderMaterials();
-    };
   </script>
 </body>
 </html>
