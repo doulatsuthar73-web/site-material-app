@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Site Material Management App</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- jspdf Library for PDF Generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
@@ -88,7 +87,6 @@
 
       <!-- Action Footer -->
       <div class="p-4 bg-gray-50 border-t flex flex-wrap gap-3 justify-between items-center">
-        <!-- Admin Total Amount Badge -->
         <div id="adminTotalBadge" class="hidden text-sm font-bold text-emerald-800 bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-300">
           Estimated Total: <span id="totalAmountText">₹0</span>
         </div>
@@ -108,8 +106,8 @@
     <div class="bg-white rounded-xl p-6 max-w-sm w-full space-y-4">
       <h3 class="text-lg font-bold text-gray-800">Enter Phone Number</h3>
       <p class="text-xs text-gray-500">Admins: Nikhil (7620520720) / Doulat (9799433172)</p>
-      <input type="tel" id="loginPhone" value="7620520720" placeholder="Enter Registered Phone No" class="w-full p-2.5 border rounded-lg text-sm">
-      <button onclick="handleLogin()" class="w-full bg-blue-900 text-white py-2.5 rounded-lg font-bold text-sm">
+      <input type="tel" id="loginPhone" value="9799433172" placeholder="Enter Registered Phone No" class="w-full p-2.5 border rounded-lg text-sm">
+      <button type="button" onclick="handleLogin()" class="w-full bg-blue-900 text-white py-2.5 rounded-lg font-bold text-sm hover:bg-blue-800">
         Log In / Grant Access
       </button>
     </div>
@@ -181,6 +179,7 @@
 
     function renderMaterials() {
       const tbody = document.getElementById('materialsTableBody');
+      if (!tbody) return;
       tbody.innerHTML = '';
 
       materials.forEach(item => {
@@ -231,7 +230,7 @@
       const qty = qtyInput ? parseInt(qtyInput.value) || 0 : 0;
       const rateNum = parseFloat(item.rate) || 0;
 
-      if (qty <= 0) return { qty: 0, lineTotal: 0, sqft: 0, selectedSize: '' };
+      if (qty <= 0) return { qty: 0, lineTotal: 0, totalSqft: 0, selectedSize: '' };
 
       let selectedSize = '';
       const sizeElement = document.getElementById(size-${item.id});
@@ -244,7 +243,6 @@
       let lineTotal = 0;
       let totalSqft = 0;
 
-      // Check if size format is Length*Width (e.g. 8*4 or 7*4)
       if (selectedSize.includes('*') && !selectedSize.toLowerCase().includes('box')) {
         const parts = selectedSize.split('*').map(p => parseFloat(p.trim()));
         if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
@@ -254,7 +252,6 @@
           lineTotal = qty * rateNum;
         }
       } else {
-        // Direct Qty * Rate for KG, Box, Nos, MTR
         lineTotal = qty * rateNum;
       }
 
@@ -268,7 +265,10 @@
         grandTotal += lineTotal;
       });
 
-      document.getElementById('totalAmountText').innerText = ₹${grandTotal.toLocaleString('en-IN', {maximumFractionDigits: 2})};
+      const totalEl = document.getElementById('totalAmountText');
+      if (totalEl) {
+        totalEl.innerText = ₹${grandTotal.toLocaleString('en-IN', {maximumFractionDigits: 2})};
+      }
     }
 
     function generatePDFAndNotify() {
@@ -440,9 +440,21 @@
       alert("Naya material list me add ho gaya hai!");
     }
 
+    function toggleLoginModal() {
+      const modal = document.getElementById('loginModal');
+      if (modal) {
+        modal.classList.toggle('hidden');
+      }
+    }
+
     function handleLogin() {
-      const phone = document.getElementById('loginPhone').value.trim();
-      if (!phone) return alert('Phone number enter karein');
+      const phoneInput = document.getElementById('loginPhone');
+      const phone = phoneInput ? phoneInput.value.trim() : '';
+      
+      if (!phone) {
+        alert('Phone number enter karein');
+        return;
+      }
 
       if (phone === '7620520720' || phone === '9799433172') {
         currentRole = 'ADMIN';
@@ -451,7 +463,8 @@
         currentRole = 'WORKER';
         currentUser = 'Worker (' + phone + ')';
       } else {
-        return alert('Access Denied! Ye phone number registered nahi hai.');
+        alert('Access Denied! Ye phone number registered nahi hai.');
+        return;
       }
 
       updateUI();
@@ -459,7 +472,9 @@
     }
 
     function updateUI() {
-      document.getElementById('userStatus').innerText = 'Logged in: ' + currentUser;
+      const userStatusEl = document.getElementById('userStatus');
+      if (userStatusEl) userStatusEl.innerText = 'Logged in: ' + currentUser;
+
       const rateBadge = document.getElementById('rateVisibilityBadge');
       const adminPanel = document.getElementById('adminPanel');
       const editSiteBtn = document.getElementById('editSiteBtn');
@@ -467,19 +482,23 @@
       const adminTotalBadge = document.getElementById('adminTotalBadge');
 
       if (currentRole === 'ADMIN') {
-        rateBadge.innerText = 'Rates Visible (Admin View)';
-        rateBadge.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800';
-        adminPanel.classList.remove('hidden');
-        editSiteBtn.classList.remove('hidden');
-        adminTag.classList.remove('hidden');
-        adminTotalBadge.classList.remove('hidden');
+        if (rateBadge) {
+          rateBadge.innerText = 'Rates Visible (Admin View)';
+          rateBadge.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800';
+        }
+        if (adminPanel) adminPanel.classList.remove('hidden');
+        if (editSiteBtn) editSiteBtn.classList.remove('hidden');
+        if (adminTag) adminTag.classList.remove('hidden');
+        if (adminTotalBadge) adminTotalBadge.classList.remove('hidden');
       } else {
-        rateBadge.innerText = 'Rates Hidden (Worker View)';
-        rateBadge.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-gray-200 text-gray-700';
-        adminPanel.classList.add('hidden');
-        editSiteBtn.classList.add('hidden');
-        adminTag.classList.add('hidden');
-        adminTotalBadge.classList.add('hidden');
+        if (rateBadge) {
+          rateBadge.innerText = 'Rates Hidden (Worker View)';
+          rateBadge.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-gray-200 text-gray-700';
+        }
+        if (adminPanel) adminPanel.classList.add('hidden');
+        if (editSiteBtn) editSiteBtn.classList.add('hidden');
+        if (adminTag) adminTag.classList.add('hidden');
+        if (adminTotalBadge) adminTotalBadge.classList.add('hidden');
       }
 
       renderMaterials();
@@ -498,19 +517,18 @@
     }
 
     function addAccessPhone() {
-      const phone = document.getElementById('newPhone').value.trim();
+      const phoneInput = document.getElementById('newPhone');
+      const phone = phoneInput ? phoneInput.value.trim() : '';
       if (phone) {
         allowedPhones.push(phone);
         alert('Phone number ' + phone + ' ko access mil gaya hai!');
-        document.getElementById('newPhone').value = '';
+        phoneInput.value = '';
       }
     }
 
-    function toggleLoginModal() {
-      document.getElementById('loginModal').classList.toggle('hidden');
-    }
-
-    renderMaterials();
+    window.onload = function() {
+      renderMaterials();
+    };
   </script>
 </body>
 </html>
