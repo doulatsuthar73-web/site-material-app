@@ -40,7 +40,7 @@
           <option value="5">Site 6: Site Six</option>
         </select>
         
-        <!-- Only Admin Can Edit Site Name -->
+        <!-- Only Main Admins Can Edit Site Name -->
         <button id="editSiteBtn" onclick="renameCurrentSite()" class="hidden bg-amber-600 text-white text-xs px-3 py-2 rounded-lg font-bold hover:bg-amber-700">
           ✏️ Edit Site Name (Admin Only)
         </button>
@@ -114,15 +114,29 @@
 
   </div>
 
-  <!-- Login Modal -->
+  <!-- Login Modal with OTP -->
   <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-xl p-6 max-w-sm w-full space-y-4">
-      <h3 class="text-lg font-bold text-gray-800">Enter Phone Number</h3>
-      <p class="text-xs text-gray-500">Only Authorized Admins: Doulat (9799433172) & Nikhil (7620520720)</p>
-      <input type="tel" id="loginPhone" value="9799433172" placeholder="Enter Registered Phone No" class="w-full p-2.5 border rounded-lg text-sm">
-      <button type="button" onclick="handleLogin()" class="w-full bg-blue-900 text-white py-2.5 rounded-lg font-bold text-sm hover:bg-blue-800">
-        Log In / Grant Access
-      </button>
+      <h3 class="text-lg font-bold text-gray-800">Login via Phone OTP</h3>
+      
+      <!-- Phone Step -->
+      <div id="phoneStep" class="space-y-3">
+        <p class="text-xs text-gray-500">Admins: Doulat & Nikhil | Workers: Admin authorized number only</p>
+        <input type="tel" id="loginPhone" placeholder="Enter Registered Phone No" class="w-full p-2.5 border rounded-lg text-sm">
+        <button type="button" onclick="sendOTP()" class="w-full bg-blue-900 text-white py-2.5 rounded-lg font-bold text-sm hover:bg-blue-800">
+          Send OTP
+        </button>
+      </div>
+
+      <!-- OTP Step -->
+      <div id="otpStep" class="hidden space-y-3">
+        <p class="text-xs text-green-700 font-semibold">OTP Sent! (Default Test OTP: 1234)</p>
+        <input type="text" id="otpInput" placeholder="Enter 4-digit OTP" class="w-full p-2.5 border rounded-lg text-sm text-center font-bold tracking-widest">
+        <button type="button" onclick="verifyOTP()" class="w-full bg-emerald-700 text-white py-2.5 rounded-lg font-bold text-sm hover:bg-emerald-800">
+          Verify OTP & Login
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -189,6 +203,7 @@
     let currentUser = 'Guest Worker';
     let allowedPhones = [];
     let uploadedImages = {};
+    let pendingPhone = '';
 
     function renderMaterials() {
       const tbody = document.getElementById('materialsTableBody');
@@ -206,7 +221,7 @@
           sizeOptionsHTML = `<span id="size-${item.id}" class="text-gray-700 font-medium">${item.sizes ? item.sizes[0] : ''}</span>`;
         }
 
-        // Rate & Edit Rate Button (Strictly for Admin)
+        // Rate & Rate Edit Option (Strictly Hidden for Granted Workers/Non-Admin)
         let rateHTML = `<span class="font-semibold text-emerald-700">₹${item.rate}</span>`;
         if (currentRole === 'ADMIN') {
           rateHTML += ` <button onclick="editRate(${item.id})" class="text-xs text-amber-700 font-bold hover:underline ml-1">✏️ Edit</button>`;
@@ -225,6 +240,47 @@
       });
 
       calculateTotal();
+    }
+
+    function sendOTP() {
+      const phoneInput = document.getElementById('loginPhone');
+      const phone = phoneInput ? phoneInput.value.trim() : '';
+
+      if (!phone) {
+        alert('Kripya phone number enter karein');
+        return;
+      }
+
+      const isAdmin = (phone === '9799433172' || phone === '7620520720');
+      const isAllowedWorker = allowedPhones.includes(phone);
+
+      if (!isAdmin && !isAllowedWorker) {
+        alert('Access Denied! Ye phone number Admin dwara granted nahi hai.');
+        return;
+      }
+
+      pendingPhone = phone;
+      document.getElementById('phoneStep').classList.add('hidden');
+      document.getElementById('otpStep').classList.remove('hidden');
+    }
+
+    function verifyOTP() {
+      const otp = document.getElementById('otpInput').value.trim();
+      if (otp !== '1234') {
+        alert('Galat OTP! Sahi OTP (1234) enter karein.');
+        return;
+      }
+
+      if (pendingPhone === '9799433172' || pendingPhone === '7620520720') {
+        currentRole = 'ADMIN';
+        currentUser = pendingPhone === '9799433172' ? 'Doulat (Admin)' : 'Nikhil (Admin)';
+      } else {
+        currentRole = 'WORKER';
+        currentUser = 'Granted Worker (' + pendingPhone + ')';
+      }
+
+      updateUI();
+      toggleLoginModal();
     }
 
     function editRate(id) {
@@ -246,7 +302,7 @@
 
     function renameCurrentSite() {
       if (currentRole !== 'ADMIN') {
-        alert("Sirf Admin (Doulat ya Nikhil) hi Site ka Name change kar sakte hain!");
+        alert("Sirf Admin (Doulat ya Nikhil) hi Site Name badal sakte hain!");
         return;
       }
 
@@ -254,7 +310,7 @@
       const selectedIndex = select.selectedIndex;
       const currentName = select.options[selectedIndex].text;
 
-      const newName = prompt("Naya Site Name likhein (Sabhi ke liye change hoga):", currentName);
+      const newName = prompt("Naya Site Name likhein:", currentName);
       if (newName && newName.trim() !== "") {
         select.options[selectedIndex].text = newName.trim();
         alert("Site Name badal diya gaya hai!");
@@ -499,31 +555,9 @@
       const modal = document.getElementById('loginModal');
       if (modal) {
         modal.classList.toggle('hidden');
+        document.getElementById('phoneStep').classList.remove('hidden');
+        document.getElementById('otpStep').classList.add('hidden');
       }
-    }
-
-    function handleLogin() {
-      const phoneInput = document.getElementById('loginPhone');
-      const phone = phoneInput ? phoneInput.value.trim() : '';
-      
-      if (!phone) {
-        alert('Phone number enter karein');
-        return;
-      }
-
-      if (phone === '9799433172' || phone === '7620520720') {
-        currentRole = 'ADMIN';
-        currentUser = phone === '9799433172' ? 'Doulat (Admin)' : 'Nikhil (Admin)';
-      } else if (allowedPhones.includes(phone)) {
-        currentRole = 'WORKER';
-        currentUser = 'Worker (' + phone + ')';
-      } else {
-        alert('Access Denied! Ye phone number Admin ya Authorized List me nahi hai.');
-        return;
-      }
-
-      updateUI();
-      toggleLoginModal();
     }
 
     function updateUI() {
@@ -568,7 +602,7 @@
       const phone = phoneInput ? phoneInput.value.trim() : '';
       if (phone) {
         allowedPhones.push(phone);
-        alert('Phone number ' + phone + ' ko access mil gaya hai!');
+        alert('Phone number ' + phone + ' ko access mil gaya hai! Ab ye number OTP se login kar sakta hai.');
         phoneInput.value = '';
       }
     }
