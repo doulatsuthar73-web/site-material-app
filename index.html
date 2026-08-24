@@ -126,9 +126,9 @@
   </div>
 
   <script>
-    // Firebase Configuration - Apna Realtime Database URL yahan dalein
+    // Exact Configured Firebase Database URL
     const firebaseConfig = {
-      databaseURL: "YOUR_FIREBASE_DATABASE_URL_HERE"
+      databaseURL: "https://site-material-app-default-rtdb.europe-west1.firebasedatabase.app"
     };
     
     // Initialize Firebase
@@ -149,7 +149,7 @@
         document.getElementById("appTitle").innerText = name;
         document.getElementById("siteNameInput").value = name;
       });
-https://site-material-app-default-rtdb.europe-west1.firebasedatabase.app/
+
       // Real-time listener for Items List
       db.ref("items").on("value", (snapshot) => {
         const data = snapshot.val();
