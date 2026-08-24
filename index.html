@@ -3,22 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Site Material Tracker</title>
+  <title>Material Management System</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800 font-sans pb-10">
 
-  <!-- Header -->
+  <!-- Header with Company Logo & Name -->
   <header class="bg-blue-900 text-white p-4 shadow-md flex justify-between items-center flex-wrap gap-2">
-    <div>
-      <h1 id="appTitle" class="text-xl font-bold">Site Material Tracker</h1>
-      <p id="roleBadge" class="text-xs bg-blue-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold">Role: Admin Mode</p>
+    <div class="flex items-center gap-3">
+      <img id="companyLogoDisplay" src="logo.png" onerror="this.style.display='none'" alt="Logo" class="w-12 h-12 object-contain bg-white p-1 rounded-md shadow">
+      <div>
+        <h1 id="companyDisplay" class="text-xl font-extrabold tracking-wide">Design Home Interior</h1>
+        <p id="siteDisplayHeader" class="text-xs text-blue-200 mt-0.5">Site: Default Site</p>
+        <span id="roleBadge" class="text-[10px] bg-blue-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold">Role: Admin Mode</span>
+      </div>
     </div>
     <div class="flex items-center gap-2">
       <button id="authBtn" onclick="toggleAuthModal()" class="bg-yellow-500 hover:bg-yellow-600 text-black text-xs font-bold px-3 py-2 rounded shadow transition">
@@ -31,53 +34,91 @@
 
     <!-- Admin Settings Panel -->
     <div id="adminSettingsPanel" class="bg-white p-4 rounded-lg shadow mb-6 border-l-4 border-blue-900">
-      <h2 class="text-md font-bold text-blue-900 mb-2">⚙️ Admin Settings (Site Configuration)</h2>
-      <div class="flex gap-2">
-        <input type="text" id="siteNameInput" placeholder="Enter Site Name (e.g. ABIL Imperial 1201)" class="flex-1 p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
-        <button onclick="updateSiteName()" class="bg-blue-900 text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-800 transition">
-          Save Site Name
-        </button>
+      <h2 class="text-md font-bold text-blue-900 mb-3">⚙️ Admin Control Panel</h2>
+      
+      <!-- Company Details & Logo Setting -->
+      <div class="mb-4 pb-3 border-b grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Company Name</label>
+          <input type="text" id="companyInput" placeholder="Enter Company Name" class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-blue-900">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Logo Image URL (Optional)</label>
+          <input type="text" id="logoInput" placeholder="Paste Logo Image Link or keep logo.png" class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-blue-900">
+        </div>
+        <div class="sm:col-span-2 text-right">
+          <button onclick="saveCompanyDetails()" class="bg-blue-900 text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-800">Save Company Details</button>
+        </div>
+      </div>
+
+      <!-- Site Management -->
+      <div class="mb-4 pb-3 border-b grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Select Active Site</label>
+          <select id="siteSelect" onchange="changeSite(this.value)" class="w-full p-2 border rounded text-sm bg-gray-50 font-semibold"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Add New Site</label>
+          <div class="flex gap-2">
+            <input type="text" id="newSiteInput" placeholder="e.g. Kesar Site" class="flex-1 p-2 border rounded text-sm">
+            <button onclick="addNewSite()" class="bg-blue-900 text-white px-3 py-2 rounded text-sm font-bold">+ Add</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Master Material Creator -->
+      <div>
+        <h3 class="text-xs font-bold text-gray-700 mb-2">➕ Fix Master Material Item (Preset for Workers)</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+          <input type="text" id="masterName" placeholder="Material Name & Size (e.g. 18mm Plywood 8*4)" class="p-2 border rounded text-xs sm:col-span-2">
+          <input type="number" id="masterRate" placeholder="Fixed Rate (₹)" class="p-2 border rounded text-xs">
+          <input type="text" id="masterPhoto" placeholder="Default Photo Link (Optional)" class="p-2 border rounded text-xs">
+        </div>
+        <button onclick="saveMasterItem()" class="mt-2 bg-green-700 text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-green-800">+ Add to Master Catalog</button>
       </div>
     </div>
 
-    <!-- Material Entry Form -->
+    <!-- Worker Entry Form -->
     <div class="bg-white p-4 rounded-lg shadow mb-6">
-      <h2 class="text-md font-bold text-gray-700 mb-3">➕ Add New Item</h2>
-      <form id="materialForm" onsubmit="handleAddItem(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Item Name</label>
-          <input type="text" id="itemName" required placeholder="e.g. 8mm Buffer" class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Quantity</label>
-          <input type="number" id="itemQty" required min="1" placeholder="e.g. 10" oninput="calculateAmount()" class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">
-        </div>
-        
-        <!-- Rate Input (Admin Only) -->
-        <div id="rateInputGroup" class="admin-only">
-          <label class="block text-xs font-bold text-gray-600 mb-1">Rate (₹)</label>
-          <input type="number" id="itemRate" min="0" step="0.01" placeholder="e.g. 50" oninput="calculateAmount()" class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">
+      <h2 class="text-md font-bold text-gray-700 mb-3">⚡ Add Material to Site List</h2>
+      <form id="materialForm" onsubmit="handleAddItem(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <div class="sm:col-span-1">
+          <label class="block text-xs font-bold text-gray-600 mb-1">Select Fixed Material</label>
+          <select id="masterDropdown" onchange="onMasterSelect()" class="w-full p-2 border rounded text-sm bg-gray-50 font-semibold">
+            <option value="">-- Select Pre-fixed Item --</option>
+          </select>
         </div>
 
-        <!-- Amount Input (Admin Only) -->
-        <div id="amountInputGroup" class="admin-only">
-          <label class="block text-xs font-bold text-gray-600 mb-1">Amount (₹)</label>
-          <input type="text" id="itemAmount" readonly placeholder="0" class="w-full p-2 border rounded text-sm bg-gray-100 text-gray-600">
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Sheets / Quantity</label>
+          <input type="number" id="itemQty" required min="1" placeholder="e.g. 10" oninput="calculatePreview()" class="w-full p-2 border rounded text-sm focus:ring-1 focus:ring-blue-900">
         </div>
 
-        <div class="sm:col-span-2 md:col-span-4 flex justify-end mt-2">
-          <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded text-sm font-bold hover:bg-green-700 transition">
-            Add to List
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Photo Link (Worker Optional)</label>
+          <input type="text" id="workerPhoto" placeholder="Paste Photo Link" class="w-full p-2 border rounded text-sm focus:ring-1 focus:ring-blue-900">
+        </div>
+
+        <div class="flex items-end">
+          <button type="submit" class="w-full bg-green-600 text-white py-2 rounded text-sm font-bold hover:bg-green-700 transition">
+            + Add to List
           </button>
         </div>
       </form>
+
+      <!-- Auto Calculations Preview -->
+      <div id="calcPreview" class="hidden mt-3 p-2 bg-gray-50 border rounded text-xs flex justify-between text-gray-600">
+        <span>Total Sqft: <strong id="previewSqft" class="text-gray-900">0</strong></span>
+        <span class="admin-only">Rate: <strong id="previewRate" class="text-gray-900">₹0</strong></span>
+        <span class="admin-only">Est. Amount: <strong id="previewAmount" class="text-blue-900">₹0</strong></span>
+      </div>
     </div>
 
-    <!-- Material List Table -->
+    <!-- Site Material Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <div class="p-4 border-b flex justify-between items-center flex-wrap gap-2">
-        <h2 class="text-md font-bold text-gray-700">📋 Material Requirement List</h2>
-        <button onclick="downloadPDF()" class="bg-red-600 text-white text-xs font-bold px-3 py-2 rounded hover:bg-red-700 transition flex items-center gap-1">
+        <h2 class="text-md font-bold text-gray-700">📋 Site List: <span id="currentSiteLabel" class="text-blue-900 font-extrabold">Default Site</span></h2>
+        <button onclick="downloadPDF()" class="bg-red-600 text-white text-xs font-bold px-3 py-2 rounded hover:bg-red-700 transition">
           📄 Download PDF
         </button>
       </div>
@@ -85,21 +126,21 @@
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-sm">
           <thead>
-            <tr class="bg-gray-100 text-gray-700 border-b">
+            <tr class="bg-gray-100 text-gray-700 border-b text-xs">
               <th class="p-3">#</th>
-              <th class="p-3">Item Name</th>
+              <th class="p-3">Photo</th>
+              <th class="p-3">Item Description</th>
               <th class="p-3 text-center">Qty</th>
+              <th class="p-3 text-center">Total Sqft</th>
               <th class="p-3 text-right admin-only">Rate (₹)</th>
               <th class="p-3 text-right admin-only">Amount (₹)</th>
               <th class="p-3 text-center">Action</th>
             </tr>
           </thead>
-          <tbody id="materialsTableBody">
-            <!-- Dynamic rows -->
-          </tbody>
+          <tbody id="materialsTableBody"></tbody>
           <tfoot id="tableFooter" class="admin-only border-t bg-gray-50 font-bold">
             <tr>
-              <td colspan="4" class="p-3 text-right text-gray-700">Total Amount:</td>
+              <td colspan="6" class="p-3 text-right text-gray-700">Total Amount:</td>
               <td id="grandTotal" class="p-3 text-right text-blue-900">₹0.00</td>
               <td></td>
             </tr>
@@ -110,144 +151,227 @@
 
   </div>
 
-  <!-- Access Code Modal -->
+  <!-- Modal Auth -->
   <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
       <h3 class="text-lg font-bold text-gray-800 mb-2">Access Code Verification</h3>
       <p class="text-xs text-gray-500 mb-4">Worker Access Code: <span class="font-bold">DHI0001</span></p>
-      
-      <input type="password" id="accessCodeInput" placeholder="Enter Access Code" class="w-full p-2 border rounded mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
-      
+      <input type="password" id="accessCodeInput" placeholder="Enter Access Code" class="w-full p-2 border rounded mb-4 text-sm">
       <div class="flex justify-end gap-2">
-        <button onclick="toggleAuthModal()" class="px-4 py-2 text-xs font-bold text-gray-500 hover:bg-gray-100 rounded">Cancel</button>
-        <button onclick="verifyAccessCode()" class="px-4 py-2 text-xs font-bold bg-blue-900 text-white rounded hover:bg-blue-800">Submit</button>
+        <button onclick="toggleAuthModal()" class="px-4 py-2 text-xs text-gray-500">Cancel</button>
+        <button onclick="verifyAccessCode()" class="px-4 py-2 text-xs bg-blue-900 text-white rounded font-bold">Submit</button>
       </div>
     </div>
   </div>
 
   <script>
-    // Exact Configured Firebase Database URL
     const firebaseConfig = {
       databaseURL: "https://site-material-app-default-rtdb.europe-west1.firebasedatabase.app"
     };
     
-    // Initialize Firebase
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     const WORKER_CODE = "DHI0001";
     const ADMIN_CODE = "ADMIN";
     let currentRole = "admin";
+    let currentSiteId = "default_site";
+    let currentSiteName = "Default Site";
+    let masterCatalog = {};
     let items = [];
 
     window.onload = function() {
-      // Real-time listener for Site Name
-      db.ref("siteName").on("value", (snapshot) => {
-        const name = snapshot.val() || "Site Material Tracker";
-        document.getElementById("appTitle").innerText = name;
-        document.getElementById("siteNameInput").value = name;
-      });
-
-      // Real-time listener for Items List
-      db.ref("items").on("value", (snapshot) => {
-        const data = snapshot.val();
-        items = [];
-        if (data) {
-          Object.keys(data).forEach(key => {
-            items.push({ firebaseId: key, ...data[key] });
-          });
-        }
-        renderTable();
-      });
-
+      listenCompany();
+      listenSites();
+      listenMasterCatalog();
+      loadSiteData(currentSiteId);
       renderUI();
     };
 
-    function updateSiteName() {
-      const newName = document.getElementById("siteNameInput").value.trim();
-      if (newName) {
-        db.ref("siteName").set(newName);
-        alert("Site name updated globally!");
-      }
+    function listenCompany() {
+      db.ref("companyDetails").on("value", (snap) => {
+        const details = snap.val() || { name: "Design Home Interior", logo: "logo.png" };
+        document.getElementById("companyDisplay").innerText = details.name || "Design Home Interior";
+        document.getElementById("companyInput").value = details.name || "Design Home Interior";
+        
+        const logoImg = document.getElementById("companyLogoDisplay");
+        logoImg.src = details.logo || "logo.png";
+        logoImg.style.display = "block";
+        document.getElementById("logoInput").value = details.logo || "";
+      });
     }
 
-    function calculateAmount() {
-      if (currentRole !== 'admin') return;
+    function saveCompanyDetails() {
+      const name = document.getElementById("companyInput").value.trim();
+      const logo = document.getElementById("logoInput").value.trim();
+      db.ref("companyDetails").set({ name, logo });
+    }
+
+    function listenMasterCatalog() {
+      db.ref("masterCatalog").on("value", (snap) => {
+        masterCatalog = snap.val() || {};
+        const drop = document.getElementById("masterDropdown");
+        drop.innerHTML = '<option value="">-- Select Pre-fixed Item --</option>';
+        Object.keys(masterCatalog).forEach(id => {
+          const item = masterCatalog[id];
+          const opt = document.createElement("option");
+          opt.value = id;
+          opt.innerText = item.name + (currentRole === 'admin' ? ` (₹${item.rate})` : '');
+          drop.appendChild(opt);
+        });
+      });
+    }
+
+    function saveMasterItem() {
+      const name = document.getElementById("masterName").value.trim();
+      const rate = parseFloat(document.getElementById("masterRate").value) || 0;
+      const photo = document.getElementById("masterPhoto").value.trim();
+      
+      if (!name) return alert("Enter item name!");
+      db.ref("masterCatalog").push({ name, rate, photo }).then(() => {
+        document.getElementById("masterName").value = "";
+        document.getElementById("masterRate").value = "";
+        document.getElementById("masterPhoto").value = "";
+      });
+    }
+
+    function listenSites() {
+      db.ref("sites").on("value", (snap) => {
+        const sites = snap.val() || {};
+        const select = document.getElementById("siteSelect");
+        select.innerHTML = "";
+        if (!sites["default_site"]) db.ref("sites/default_site").set({ name: "Default Site" });
+
+        Object.keys(sites).forEach(siteId => {
+          const opt = document.createElement("option");
+          opt.value = siteId;
+          opt.innerText = sites[siteId].name;
+          if (siteId === currentSiteId) opt.selected = true;
+          select.appendChild(opt);
+        });
+      });
+    }
+
+    function addNewSite() {
+      const siteName = document.getElementById("newSiteInput").value.trim();
+      if (!siteName) return;
+      const siteId = "site_" + Date.now();
+      db.ref("sites/" + siteId).set({ name: siteName }).then(() => {
+        document.getElementById("newSiteInput").value = "";
+        changeSite(siteId);
+      });
+    }
+
+    function changeSite(siteId) {
+      currentSiteId = siteId;
+      db.ref("sites/" + siteId + "/name").once("value", (snap) => {
+        currentSiteName = snap.val() || "Site";
+        document.getElementById("currentSiteLabel").innerText = currentSiteName;
+        document.getElementById("siteDisplayHeader").innerText = "Site: " + currentSiteName;
+        loadSiteData(currentSiteId);
+      });
+    }
+
+    function loadSiteData(siteId) {
+      db.ref("site_data/" + siteId + "/items").on("value", (snap) => {
+        const data = snap.val();
+        items = [];
+        if (data) Object.keys(data).forEach(k => items.push({ firebaseId: k, ...data[k] }));
+        renderTable();
+      });
+    }
+
+    function onMasterSelect() {
+      calculatePreview();
+    }
+
+    function calculatePreview() {
+      const masterId = document.getElementById("masterDropdown").value;
       const qty = parseFloat(document.getElementById("itemQty").value) || 0;
-      const rate = parseFloat(document.getElementById("itemRate").value) || 0;
-      document.getElementById("itemAmount").value = (qty * rate).toFixed(2);
+      const preview = document.getElementById("calcPreview");
+
+      if (!masterId || qty <= 0) {
+        preview.classList.add("hidden");
+        return;
+      }
+
+      preview.classList.remove("hidden");
+      const mat = masterCatalog[masterId];
+
+      let sqftPerUnit = 0;
+      const match = mat.name.match(/(\d+\.?\d*)\s*[*xX]\s*(\d+\.?\d*)/);
+      if (match) sqftPerUnit = parseFloat(match[1]) * parseFloat(match[2]);
+
+      const totalSqft = sqftPerUnit > 0 ? (sqftPerUnit * qty) : 0;
+      const totalMult = totalSqft > 0 ? totalSqft : qty;
+      const amount = totalMult * (mat.rate || 0);
+
+      document.getElementById("previewSqft").innerText = totalSqft > 0 ? totalSqft.toFixed(2) + " sqft" : "-";
+      document.getElementById("previewRate").innerText = "₹" + (mat.rate || 0).toFixed(2);
+      document.getElementById("previewAmount").innerText = "₹" + amount.toFixed(2);
     }
 
     function handleAddItem(e) {
       e.preventDefault();
-      const name = document.getElementById("itemName").value.trim();
+      const masterId = document.getElementById("masterDropdown").value;
+      if (!masterId) return alert("Please select a material!");
+      
+      const mat = masterCatalog[masterId];
       const qty = parseFloat(document.getElementById("itemQty").value);
-      const rate = currentRole === 'admin' ? (parseFloat(document.getElementById("itemRate").value) || 0) : 0;
-      const amount = qty * rate;
+      const workerPhotoInput = document.getElementById("workerPhoto").value.trim();
 
-      const newItem = { name, qty, rate, amount, timestamp: Date.now() };
-      db.ref("items").push(newItem);
+      let sqft = 0;
+      const match = mat.name.match(/(\d+\.?\d*)\s*[*xX]\s*(\d+\.?\d*)/);
+      if (match) sqft = parseFloat(match[1]) * parseFloat(match[2]) * qty;
 
+      const rate = mat.rate || 0;
+      const totalMult = sqft > 0 ? sqft : qty;
+      const amount = totalMult * rate;
+
+      const finalPhoto = workerPhotoInput || mat.photo || "";
+
+      const newItem = {
+        name: mat.name,
+        qty: qty,
+        sqft: sqft,
+        rate: rate,
+        amount: amount,
+        photo: finalPhoto
+      };
+
+      db.ref("site_data/" + currentSiteId + "/items").push(newItem);
       document.getElementById("materialForm").reset();
-      if (document.getElementById("itemAmount")) document.getElementById("itemAmount").value = "";
+      document.getElementById("calcPreview").classList.add("hidden");
     }
 
-    function deleteItem(firebaseId) {
-      db.ref("items/" + firebaseId).remove();
+    function deleteItem(id) {
+      db.ref("site_data/" + currentSiteId + "/items/" + id).remove();
     }
 
     function toggleAuthModal() {
-      const modal = document.getElementById("authModal");
-      modal.classList.toggle("hidden");
+      document.getElementById("authModal").classList.toggle("hidden");
       document.getElementById("accessCodeInput").value = "";
     }
 
     function verifyAccessCode() {
       const code = document.getElementById("accessCodeInput").value.trim();
-      if (code === WORKER_CODE) {
-        currentRole = "worker";
-        toggleAuthModal();
-        renderUI();
-      } else if (code.toUpperCase() === ADMIN_CODE) {
-        currentRole = "admin";
-        toggleAuthModal();
-        renderUI();
-      } else {
-        alert("Invalid Access Code!");
-      }
+      if (code === WORKER_CODE) { currentRole = "worker"; toggleAuthModal(); renderUI(); }
+      else if (code.toUpperCase() === ADMIN_CODE) { currentRole = "admin"; toggleAuthModal(); renderUI(); }
+      else alert("Invalid Code!");
     }
 
     function renderUI() {
       const isAdmin = currentRole === "admin";
-      const roleBadge = document.getElementById("roleBadge");
-      const authBtn = document.getElementById("authBtn");
-      const adminPanel = document.getElementById("adminSettingsPanel");
+      document.getElementById("roleBadge").innerText = isAdmin ? "Role: Admin Mode" : "Role: Worker Mode";
+      document.getElementById("roleBadge").className = isAdmin ? "text-[10px] bg-blue-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold" : "text-[10px] bg-green-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold";
+      document.getElementById("authBtn").innerText = isAdmin ? "Switch to Worker Mode" : "Switch to Admin Mode";
+      document.getElementById("authBtn").onclick = isAdmin ? () => { currentRole = "worker"; renderUI(); } : () => toggleAuthModal();
+      
+      if (isAdmin) document.getElementById("adminSettingsPanel").classList.remove("hidden");
+      else document.getElementById("adminSettingsPanel").classList.add("hidden");
 
-      if (isAdmin) {
-        roleBadge.innerText = "Role: Admin Mode";
-        roleBadge.className = "text-xs bg-blue-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold";
-        authBtn.innerText = "Switch to Worker Mode";
-        authBtn.onclick = () => {
-          currentRole = "worker";
-          renderUI();
-        };
-        adminPanel.classList.remove("hidden");
-      } else {
-        roleBadge.innerText = "Role: Worker Mode";
-        roleBadge.className = "text-xs bg-green-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold";
-        authBtn.innerText = "Switch to Admin Mode";
-        authBtn.onclick = () => toggleAuthModal();
-        adminPanel.classList.add("hidden");
-      }
-
-      const adminOnlyElements = document.querySelectorAll(".admin-only");
-      adminOnlyElements.forEach(el => {
-        if (isAdmin) el.classList.remove("hidden");
-        else el.classList.add("hidden");
-      });
-
+      document.querySelectorAll(".admin-only").forEach(el => isAdmin ? el.classList.remove("hidden") : el.classList.add("hidden"));
+      listenMasterCatalog();
       renderTable();
     }
 
@@ -255,7 +379,6 @@
       const tbody = document.getElementById("materialsTableBody");
       const isAdmin = currentRole === "admin";
       tbody.innerHTML = "";
-
       let total = 0;
 
       items.forEach((item, index) => {
@@ -263,10 +386,16 @@
         const row = document.createElement("tr");
         row.className = "border-b hover:bg-gray-50";
 
+        const photoCell = item.photo 
+          ? `<a href="${item.photo}" target="_blank" class="text-blue-600 font-bold text-xs underline">🖼️ View</a>` 
+          : `<span class="text-gray-400 text-xs">No Photo</span>`;
+
         row.innerHTML = `
           <td class="p-3">${index + 1}</td>
+          <td class="p-3 text-center">${photoCell}</td>
           <td class="p-3 font-semibold">${item.name}</td>
           <td class="p-3 text-center">${item.qty}</td>
+          <td class="p-3 text-center text-gray-600 font-semibold">${item.sqft > 0 ? item.sqft.toFixed(2) + ' sqft' : '-'}</td>
           ${isAdmin ? `<td class="p-3 text-right">₹${(item.rate || 0).toFixed(2)}</td>` : ""}
           ${isAdmin ? `<td class="p-3 text-right font-semibold">₹${(item.amount || 0).toFixed(2)}</td>` : ""}
           <td class="p-3 text-center">
@@ -276,46 +405,66 @@
         tbody.appendChild(row);
       });
 
-      if (isAdmin) {
-        document.getElementById("grandTotal").innerText = `₹${total.toFixed(2)}`;
-      }
+      if (isAdmin) document.getElementById("grandTotal").innerText = `₹${total.toFixed(2)}`;
     }
 
     function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      const siteTitle = document.getElementById("appTitle").innerText;
+      const companyName = document.getElementById("companyDisplay").innerText;
       const isAdmin = currentRole === "admin";
+      const logoImg = document.getElementById("companyLogoDisplay");
 
-      doc.setFontSize(16);
-      doc.text(siteTitle, 14, 15);
-      doc.setFontSize(10);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()} | Access Level: ${currentRole.toUpperCase()}`, 14, 22);
+      let startY = 34;
+
+      try {
+        if (logoImg && logoImg.src && logoImg.style.display !== 'none') {
+          doc.addImage(logoImg, 'PNG', 14, 10, 20, 20);
+          doc.setFontSize(16);
+          doc.text(companyName, 38, 18);
+          doc.setFontSize(11);
+          doc.text(`Site: ${currentSiteName}`, 38, 25);
+        } else {
+          doc.setFontSize(16);
+          doc.text(companyName, 14, 15);
+          doc.setFontSize(11);
+          doc.text(`Site: ${currentSiteName}`, 14, 22);
+        }
+      } catch (e) {
+        doc.setFontSize(16);
+        doc.text(companyName, 14, 15);
+        doc.setFontSize(11);
+        doc.text(`Site: ${currentSiteName}`, 14, 22);
+      }
+
+      doc.setFontSize(9);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()} | Access Level: ${currentRole.toUpperCase()}`, 14, 32);
 
       const tableHeaders = isAdmin 
-        ? [["#", "Item Name", "Qty", "Rate (INR)", "Amount (INR)"]]
-        : [["#", "Item Name", "Qty"]];
+        ? [["#", "Item Description", "Qty", "Total Sqft", "Rate (INR)", "Amount (INR)"]]
+        : [["#", "Item Description", "Qty", "Total Sqft"]];
 
       const tableRows = items.map((item, index) => {
+        const sqftTxt = item.sqft > 0 ? item.sqft.toFixed(2) : "-";
         return isAdmin 
-          ? [index + 1, item.name, item.qty, (item.rate || 0).toFixed(2), (item.amount || 0).toFixed(2)]
-          : [index + 1, item.name, item.qty];
+          ? [index + 1, item.name, item.qty, sqftTxt, (item.rate || 0).toFixed(2), (item.amount || 0).toFixed(2)]
+          : [index + 1, item.name, item.qty, sqftTxt];
       });
 
       if (isAdmin) {
         const grandTotal = items.reduce((sum, i) => sum + (i.amount || 0), 0);
-        tableRows.push(["", "", "", "Total:", `INR ${grandTotal.toFixed(2)}`]);
+        tableRows.push(["", "", "", "", "Total:", `INR ${grandTotal.toFixed(2)}`]);
       }
 
       doc.autoTable({
-        startY: 28,
+        startY: 36,
         head: tableHeaders,
         body: tableRows,
         theme: 'striped',
         headStyles: { fillStyle: [30, 58, 138] }
       });
 
-      doc.save(`${siteTitle.replace(/\s+/g, '_')}_Material_List.pdf`);
+      doc.save(`${companyName.replace(/\s+/g, '_')}_${currentSiteName.replace(/\s+/g, '_')}.pdf`);
     }
   </script>
 </body>
