@@ -8,11 +8,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800 font-sans pb-10">
 
+  <!-- Header -->
   <header class="bg-blue-900 text-white p-4 shadow-md flex justify-between items-center flex-wrap gap-2">
     <div>
       <h1 id="appTitle" class="text-xl font-bold">Site Material Tracker</h1>
@@ -27,62 +29,45 @@
 
   <div class="max-w-4xl mx-auto p-4">
 
-    <!-- Site Management Panel -->
+    <!-- Admin Settings Panel -->
     <div id="adminSettingsPanel" class="bg-white p-4 rounded-lg shadow mb-6 border-l-4 border-blue-900">
-      <h2 class="text-md font-bold text-blue-900 mb-2">🏢 Select or Add Site</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Select Current Site</label>
-          <select id="siteSelect" onchange="changeSite(this.value)" class="w-full p-2 border rounded text-sm bg-gray-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-900">
-            <option value="default_site">Default Site</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Add New Site Name</label>
-          <div class="flex gap-2">
-            <input type="text" id="newSiteInput" placeholder="e.g. Kesar Site" class="flex-1 p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
-            <button onclick="addNewSite()" class="bg-blue-900 text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-800 transition">
-              + Add Site
-            </button>
-          </div>
-        </div>
+      <h2 class="text-md font-bold text-blue-900 mb-2">⚙️ Admin Settings (Site Configuration)</h2>
+      <div class="flex gap-2">
+        <input type="text" id="siteNameInput" placeholder="Enter Site Name (e.g. ABIL Imperial 1201)" class="flex-1 p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
+        <button onclick="updateSiteName()" class="bg-blue-900 text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-800 transition">
+          Save Site Name
+        </button>
       </div>
     </div>
 
-    <!-- Quick Add Form (With Dropdown for Workers) -->
+    <!-- Material Entry Form -->
     <div class="bg-white p-4 rounded-lg shadow mb-6">
-      <h2 class="text-md font-bold text-gray-700 mb-3">⚡ Quick Add Item (Select from List)</h2>
-      <form id="materialForm" onsubmit="handleAddItem(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+      <h2 class="text-md font-bold text-gray-700 mb-3">➕ Add New Item</h2>
+      <form id="materialForm" onsubmit="handleAddItem(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Select Material</label>
-          <select id="itemDropdown" onchange="onItemSelect()" class="w-full p-2 border rounded text-sm bg-gray-50 font-semibold focus:outline-none focus:ring-1 focus:ring-blue-900">
-            <!-- Preset Options -->
-          </select>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Item Name</label>
+          <input type="text" id="itemName" required placeholder="e.g. 8mm Buffer" class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">
         </div>
-
         <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Or Custom Item</label>
-          <input type="text" id="customItemName" placeholder="If not in list" oninput="calculateAmount()" class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Sheets / Qty</label>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Quantity</label>
           <input type="number" id="itemQty" required min="1" placeholder="e.g. 10" oninput="calculateAmount()" class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">
         </div>
         
+        <!-- Rate Input (Admin Only) -->
         <div id="rateInputGroup" class="admin-only">
           <label class="block text-xs font-bold text-gray-600 mb-1">Rate (₹)</label>
-          <input type="number" id="itemRate" min="0" step="0.01" placeholder="e.g. 45" oninput="calculateAmount()" class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">
+          <input type="number" id="itemRate" min="0" step="0.01" placeholder="e.g. 50" oninput="calculateAmount()" class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-900">
         </div>
 
+        <!-- Amount Input (Admin Only) -->
         <div id="amountInputGroup" class="admin-only">
           <label class="block text-xs font-bold text-gray-600 mb-1">Amount (₹)</label>
-          <input type="text" id="itemAmount" readonly placeholder="0" class="w-full p-2 border rounded text-sm bg-gray-100 font-bold text-blue-900">
+          <input type="text" id="itemAmount" readonly placeholder="0" class="w-full p-2 border rounded text-sm bg-gray-100 text-gray-600">
         </div>
 
-        <div class="sm:col-span-2 md:col-span-5 flex justify-end mt-2">
+        <div class="sm:col-span-2 md:col-span-4 flex justify-end mt-2">
           <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded text-sm font-bold hover:bg-green-700 transition">
-            + Add to List
+            Add to List
           </button>
         </div>
       </form>
@@ -91,7 +76,7 @@
     <!-- Material List Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <div class="p-4 border-b flex justify-between items-center flex-wrap gap-2">
-        <h2 class="text-md font-bold text-gray-700">📋 Material List - <span id="currentSiteLabel" class="text-blue-900 font-extrabold">Default Site</span></h2>
+        <h2 class="text-md font-bold text-gray-700">📋 Material Requirement List</h2>
         <button onclick="downloadPDF()" class="bg-red-600 text-white text-xs font-bold px-3 py-2 rounded hover:bg-red-700 transition flex items-center gap-1">
           📄 Download PDF
         </button>
@@ -104,16 +89,17 @@
               <th class="p-3">#</th>
               <th class="p-3">Item Name</th>
               <th class="p-3 text-center">Qty</th>
-              <th class="p-3 text-center">Total Sqft</th>
               <th class="p-3 text-right admin-only">Rate (₹)</th>
               <th class="p-3 text-right admin-only">Amount (₹)</th>
               <th class="p-3 text-center">Action</th>
             </tr>
           </thead>
-          <tbody id="materialsTableBody"></tbody>
+          <tbody id="materialsTableBody">
+            <!-- Dynamic rows -->
+          </tbody>
           <tfoot id="tableFooter" class="admin-only border-t bg-gray-50 font-bold">
             <tr>
-              <td colspan="5" class="p-3 text-right text-gray-700">Total Amount:</td>
+              <td colspan="4" class="p-3 text-right text-gray-700">Total Amount:</td>
               <td id="grandTotal" class="p-3 text-right text-blue-900">₹0.00</td>
               <td></td>
             </tr>
@@ -124,11 +110,14 @@
 
   </div>
 
+  <!-- Access Code Modal -->
   <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
       <h3 class="text-lg font-bold text-gray-800 mb-2">Access Code Verification</h3>
       <p class="text-xs text-gray-500 mb-4">Worker Access Code: <span class="font-bold">DHI0001</span></p>
+      
       <input type="password" id="accessCodeInput" placeholder="Enter Access Code" class="w-full p-2 border rounded mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
+      
       <div class="flex justify-end gap-2">
         <button onclick="toggleAuthModal()" class="px-4 py-2 text-xs font-bold text-gray-500 hover:bg-gray-100 rounded">Cancel</button>
         <button onclick="verifyAccessCode()" class="px-4 py-2 text-xs font-bold bg-blue-900 text-white rounded hover:bg-blue-800">Submit</button>
@@ -137,10 +126,12 @@
   </div>
 
   <script>
+    // Exact Configured Firebase Database URL
     const firebaseConfig = {
       databaseURL: "https://site-material-app-default-rtdb.europe-west1.firebasedatabase.app"
     };
     
+    // Initialize Firebase
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
@@ -149,96 +140,18 @@
     const WORKER_CODE = "DHI0001";
     const ADMIN_CODE = "ADMIN";
     let currentRole = "admin";
-    let currentSiteId = "default_site";
-    let currentSiteName = "Default Site";
     let items = [];
 
-    // Pre-defined Item List for Quick Selection
-    const defaultMaterials = [
-      "-- Select Item --",
-      "18mm Plywood 8*4",
-      "12mm Plywood 8*4",
-      "6mm Plywood 8*4",
-      "Laminate / Sunmica 8*4",
-      "Fevicol (50 kg)",
-      "8mm Buffer",
-      "12mm Buffer",
-      "18mm Buffer",
-      "Hinges (Kabja)",
-      "Handles 8 inch",
-      "Drawer Channel 18 inch",
-      "Screws 1 inch",
-      "Masking Tape"
-    ];
-
     window.onload = function() {
-      populateDropdown();
-      listenToSites();
-      loadSiteData(currentSiteId);
-      renderUI();
-    };
-
-    function populateDropdown() {
-      const drop = document.getElementById("itemDropdown");
-      drop.innerHTML = "";
-      defaultMaterials.forEach(mat => {
-        const opt = document.createElement("option");
-        opt.value = mat.startsWith("--") ? "" : mat;
-        opt.innerText = mat;
-        drop.appendChild(opt);
+      // Real-time listener for Site Name
+      db.ref("siteName").on("value", (snapshot) => {
+        const name = snapshot.val() || "Site Material Tracker";
+        document.getElementById("appTitle").innerText = name;
+        document.getElementById("siteNameInput").value = name;
       });
-    }
 
-    function onItemSelect() {
-      const val = document.getElementById("itemDropdown").value;
-      if (val) {
-        document.getElementById("customItemName").value = "";
-      }
-      calculateAmount();
-    }
-
-    function listenToSites() {
-      db.ref("sites").on("value", (snapshot) => {
-        const sites = snapshot.val() || {};
-        const select = document.getElementById("siteSelect");
-        select.innerHTML = "";
-        
-        if (!sites["default_site"]) {
-          db.ref("sites/default_site").set({ name: "Default Site" });
-        }
-
-        Object.keys(sites).forEach(siteId => {
-          const option = document.createElement("option");
-          option.value = siteId;
-          option.innerText = sites[siteId].name;
-          if (siteId === currentSiteId) option.selected = true;
-          select.appendChild(option);
-        });
-      });
-    }
-
-    function addNewSite() {
-      const siteName = document.getElementById("newSiteInput").value.trim();
-      if (!siteName) return alert("Please enter a site name!");
-      const siteId = "site_" + Date.now();
-      db.ref("sites/" + siteId).set({ name: siteName }).then(() => {
-        document.getElementById("newSiteInput").value = "";
-        changeSite(siteId);
-      });
-    }
-
-    function changeSite(siteId) {
-      currentSiteId = siteId;
-      db.ref("sites/" + siteId + "/name").once("value", (snap) => {
-        currentSiteName = snap.val() || "Site";
-        document.getElementById("currentSiteLabel").innerText = currentSiteName;
-        document.getElementById("appTitle").innerText = currentSiteName;
-        loadSiteData(currentSiteId);
-      });
-    }
-
-    function loadSiteData(siteId) {
-      db.ref("site_data/" + siteId + "/items").on("value", (snapshot) => {
+      // Real-time listener for Items List
+      db.ref("items").on("value", (snapshot) => {
         const data = snapshot.val();
         items = [];
         if (data) {
@@ -248,57 +161,41 @@
         }
         renderTable();
       });
+
+      renderUI();
+    };
+
+    function updateSiteName() {
+      const newName = document.getElementById("siteNameInput").value.trim();
+      if (newName) {
+        db.ref("siteName").set(newName);
+        alert("Site name updated globally!");
+      }
     }
 
     function calculateAmount() {
-      const dropVal = document.getElementById("itemDropdown").value;
-      const customVal = document.getElementById("customItemName").value.trim();
-      const name = customVal || dropVal;
-
+      if (currentRole !== 'admin') return;
       const qty = parseFloat(document.getElementById("itemQty").value) || 0;
       const rate = parseFloat(document.getElementById("itemRate").value) || 0;
-      
-      let sqftPerSheet = 0;
-      const match = name.match(/(\d+\.?\d*)\s*[*xX]\s*(\d+\.?\d*)/);
-      if (match) {
-        sqftPerSheet = parseFloat(match[1]) * parseFloat(match[2]);
-      }
-
-      const totalSqft = sqftPerSheet > 0 ? (sqftPerSheet * qty) : 0;
-      const totalMultiplier = totalSqft > 0 ? totalSqft : qty;
-      const amount = totalMultiplier * rate;
-
-      document.getElementById("itemAmount").value = amount.toFixed(2);
+      document.getElementById("itemAmount").value = (qty * rate).toFixed(2);
     }
 
     function handleAddItem(e) {
       e.preventDefault();
-      const dropVal = document.getElementById("itemDropdown").value;
-      const customVal = document.getElementById("customItemName").value.trim();
-      const name = customVal || dropVal;
-
-      if (!name) return alert("Please select or type an item name!");
-
+      const name = document.getElementById("itemName").value.trim();
       const qty = parseFloat(document.getElementById("itemQty").value);
-      
-      let sqft = 0;
-      const match = name.match(/(\d+\.?\d*)\s*[*xX]\s*(\d+\.?\d*)/);
-      if (match) {
-        sqft = parseFloat(match[1]) * parseFloat(match[2]) * qty;
-      }
-      
       const rate = currentRole === 'admin' ? (parseFloat(document.getElementById("itemRate").value) || 0) : 0;
-      const amount = parseFloat(document.getElementById("itemAmount").value) || 0;
+      const amount = qty * rate;
 
-      const newItem = { name, qty, sqft, rate, amount, timestamp: Date.now() };
-      db.ref("site_data/" + currentSiteId + "/items").push(newItem);
+      const newItem = { name, qty, rate, amount, timestamp: Date.now() };
+      db.ref("items").push(newItem);
 
       document.getElementById("materialForm").reset();
-      document.getElementById("itemAmount").value = "0";
+      if (document.getElementById("itemAmount")) document.getElementById("itemAmount").value = "";
     }
 
     function deleteItem(firebaseId) {
-      db.ref("site_data/" + currentSiteId + "/items/" + firebaseId).remove();
+      db.ref("items/" + firebaseId).remove();
     }
 
     function toggleAuthModal() {
@@ -332,7 +229,10 @@
         roleBadge.innerText = "Role: Admin Mode";
         roleBadge.className = "text-xs bg-blue-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold";
         authBtn.innerText = "Switch to Worker Mode";
-        authBtn.onclick = () => { currentRole = "worker"; renderUI(); };
+        authBtn.onclick = () => {
+          currentRole = "worker";
+          renderUI();
+        };
         adminPanel.classList.remove("hidden");
       } else {
         roleBadge.innerText = "Role: Worker Mode";
@@ -342,7 +242,8 @@
         adminPanel.classList.add("hidden");
       }
 
-      document.querySelectorAll(".admin-only").forEach(el => {
+      const adminOnlyElements = document.querySelectorAll(".admin-only");
+      adminOnlyElements.forEach(el => {
         if (isAdmin) el.classList.remove("hidden");
         else el.classList.add("hidden");
       });
@@ -354,6 +255,7 @@
       const tbody = document.getElementById("materialsTableBody");
       const isAdmin = currentRole === "admin";
       tbody.innerHTML = "";
+
       let total = 0;
 
       items.forEach((item, index) => {
@@ -365,7 +267,6 @@
           <td class="p-3">${index + 1}</td>
           <td class="p-3 font-semibold">${item.name}</td>
           <td class="p-3 text-center">${item.qty}</td>
-          <td class="p-3 text-center text-gray-600 font-semibold">${item.sqft > 0 ? item.sqft.toFixed(2) + ' sqft' : '-'}</td>
           ${isAdmin ? `<td class="p-3 text-right">₹${(item.rate || 0).toFixed(2)}</td>` : ""}
           ${isAdmin ? `<td class="p-3 text-right font-semibold">₹${(item.amount || 0).toFixed(2)}</td>` : ""}
           <td class="p-3 text-center">
@@ -383,27 +284,27 @@
     function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
+      const siteTitle = document.getElementById("appTitle").innerText;
       const isAdmin = currentRole === "admin";
 
       doc.setFontSize(16);
-      doc.text(currentSiteName, 14, 15);
+      doc.text(siteTitle, 14, 15);
       doc.setFontSize(10);
       doc.text(`Generated on: ${new Date().toLocaleDateString()} | Access Level: ${currentRole.toUpperCase()}`, 14, 22);
 
       const tableHeaders = isAdmin 
-        ? [["#", "Item Name", "Qty", "Total Sqft", "Rate (INR)", "Amount (INR)"]]
-        : [["#", "Item Name", "Qty", "Total Sqft"]];
+        ? [["#", "Item Name", "Qty", "Rate (INR)", "Amount (INR)"]]
+        : [["#", "Item Name", "Qty"]];
 
       const tableRows = items.map((item, index) => {
-        const sqftTxt = item.sqft > 0 ? item.sqft.toFixed(2) : "-";
         return isAdmin 
           ? [index + 1, item.name, item.qty, (item.rate || 0).toFixed(2), (item.amount || 0).toFixed(2)]
-          : [index + 1, item.name, item.qty, sqftTxt];
+          : [index + 1, item.name, item.qty];
       });
 
       if (isAdmin) {
         const grandTotal = items.reduce((sum, i) => sum + (i.amount || 0), 0);
-        tableRows.push(["", "", "", "", "Total:", `INR ${grandTotal.toFixed(2)}`]);
+        tableRows.push(["", "", "", "Total:", `INR ${grandTotal.toFixed(2)}`]);
       }
 
       doc.autoTable({
@@ -414,7 +315,7 @@
         headStyles: { fillStyle: [30, 58, 138] }
       });
 
-      doc.save(`${currentSiteName.replace(/\s+/g, '_')}_Material_List.pdf`);
+      doc.save(`${siteTitle.replace(/\s+/g, '_')}_Material_List.pdf`);
     }
   </script>
 </body>
