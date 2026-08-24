@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Material Management System</title>
+  <title>Material Management System with Date History</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -51,11 +51,18 @@
         </div>
       </div>
 
-      <!-- Site Management -->
-      <div class="mb-4 pb-3 border-b grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <!-- Site Management & Date History Filter -->
+      <div class="mb-4 pb-3 border-b grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Select Active Site</label>
           <select id="siteSelect" onchange="changeSite(this.value)" class="w-full p-2 border rounded text-sm bg-gray-50 font-semibold"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">📅 Filter Material History By Date</label>
+          <div class="flex gap-1">
+            <input type="date" id="dateFilterInput" onchange="applyDateFilter()" class="w-full p-2 border rounded text-sm bg-blue-50">
+            <button onclick="resetDateFilter()" class="bg-gray-300 px-2 rounded text-xs font-bold hover:bg-gray-400">All</button>
+          </div>
         </div>
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Add New Site</label>
@@ -70,15 +77,14 @@
       <div>
         <h3 class="text-xs font-bold text-gray-700 mb-2">➕ Add / Master Material Catalog</h3>
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-          <input type="text" id="masterName" placeholder="Material Name & Size (e.g. 18mm Plywood 8*4)" class="p-2 border rounded text-xs sm:col-span-2">
+          <input type="text" id="masterName" placeholder="Material Name & Size" class="p-2 border rounded text-xs sm:col-span-2">
           <input type="number" id="masterRate" placeholder="Fixed Rate (₹)" class="p-2 border rounded text-xs">
-          <input type="text" id="masterPhoto" placeholder="Default Photo Link (Optional)" class="p-2 border rounded text-xs">
+          <input type="text" id="masterPhoto" placeholder="Default Photo Link" class="p-2 border rounded text-xs">
         </div>
         <button onclick="saveMasterItem()" class="mt-2 bg-green-700 text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-green-800">+ Add Master Item</button>
 
-        <!-- Master Catalog List Preview / Edit -->
         <div class="mt-4 border-t pt-3">
-          <h4 class="text-xs font-bold text-gray-600 mb-2">Saved Master Materials (Click Edit to update rate/name):</h4>
+          <h4 class="text-xs font-bold text-gray-600 mb-2">Saved Master Materials (Preset List):</h4>
           <div id="masterListContainer" class="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-1 bg-gray-50 rounded border"></div>
         </div>
       </div>
@@ -86,10 +92,10 @@
 
     <!-- Worker Entry Form -->
     <div class="bg-white p-4 rounded-lg shadow mb-6">
-      <h2 class="text-md font-bold text-gray-700 mb-3">⚡ Add Material to Site List</h2>
+      <h2 class="text-md font-bold text-gray-700 mb-3">⚡ Add Material to Site List (Auto-Saves Date & Time)</h2>
       <form id="materialForm" onsubmit="handleAddItem(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
         <div class="sm:col-span-1">
-          <label class="block text-xs font-bold text-gray-600 mb-1">Select Fixed Material</label>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Select Material</label>
           <select id="masterDropdown" onchange="onMasterSelect()" class="w-full p-2 border rounded text-sm bg-gray-50 font-semibold">
             <option value="">-- Select Pre-fixed Item --</option>
           </select>
@@ -123,7 +129,10 @@
     <!-- Site Material Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <div class="p-4 border-b flex justify-between items-center flex-wrap gap-2">
-        <h2 class="text-md font-bold text-gray-700">📋 Site List: <span id="currentSiteLabel" class="text-blue-900 font-extrabold">Default Site</span></h2>
+        <div>
+          <h2 class="text-md font-bold text-gray-700">📋 Site List: <span id="currentSiteLabel" class="text-blue-900 font-extrabold">Default Site</span></h2>
+          <span id="activeDateFilterLabel" class="text-xs text-blue-600 font-semibold hidden">Showing materials for date: <strong id="selectedDateText"></strong></span>
+        </div>
         <button onclick="downloadPDF()" class="bg-red-600 text-white text-xs font-bold px-3 py-2 rounded hover:bg-red-700 transition">
           📄 Download PDF
         </button>
@@ -134,6 +143,7 @@
           <thead>
             <tr class="bg-gray-100 text-gray-700 border-b text-xs">
               <th class="p-3">#</th>
+              <th class="p-3">Date & Time</th>
               <th class="p-3">Photo</th>
               <th class="p-3">Item Description</th>
               <th class="p-3 text-center">Qty</th>
@@ -146,7 +156,7 @@
           <tbody id="materialsTableBody"></tbody>
           <tfoot id="tableFooter" class="admin-only border-t bg-gray-50 font-bold">
             <tr>
-              <td colspan="6" class="p-3 text-right text-gray-700">Total Amount:</td>
+              <td colspan="7" class="p-3 text-right text-gray-700">Total Amount:</td>
               <td id="grandTotal" class="p-3 text-right text-blue-900">₹0.00</td>
               <td></td>
             </tr>
@@ -192,6 +202,10 @@
           </div>
         </div>
         <div>
+          <label class="block font-bold mb-1">Date Sent (YYYY-MM-DD)</label>
+          <input type="date" id="editItemDate" class="w-full p-2 border rounded">
+        </div>
+        <div>
           <label class="block font-bold mb-1">Photo URL</label>
           <input type="text" id="editItemPhoto" class="w-full p-2 border rounded">
         </div>
@@ -217,10 +231,10 @@
     let currentRole = "admin";
     let currentSiteId = "default_site";
     let currentSiteName = "Default Site";
+    let selectedDateFilter = "";
     let masterCatalog = {};
     let items = [];
 
-    // Default Materials List
     const defaultMasterItems = [
       { name: "18mm Plywood 8*4", rate: 60, photo: "" },
       { name: "12mm Plywood 8*4", rate: 45, photo: "" },
@@ -262,36 +276,28 @@
     function listenMasterCatalog() {
       db.ref("masterCatalog").on("value", (snap) => {
         masterCatalog = snap.val();
-        
-        // Auto initialize default catalog if empty
         if (!masterCatalog) {
-          defaultMasterItems.forEach(item => {
-            db.ref("masterCatalog").push(item);
-          });
+          defaultMasterItems.forEach(item => db.ref("masterCatalog").push(item));
           return;
         }
 
         const drop = document.getElementById("masterDropdown");
         const listCont = document.getElementById("masterListContainer");
-        
         drop.innerHTML = '<option value="">-- Select Pre-fixed Item --</option>';
         listCont.innerHTML = "";
 
         Object.keys(masterCatalog).forEach(id => {
           const item = masterCatalog[id];
-          
-          // Dropdown option
           const opt = document.createElement("option");
           opt.value = id;
           opt.innerText = item.name + (currentRole === 'admin' ? ` (₹${item.rate})` : '');
           drop.appendChild(opt);
 
-          // Admin Master Edit Chips
           const chip = document.createElement("div");
           chip.className = "bg-white border rounded px-2 py-1 text-xs flex items-center gap-2 shadow-sm";
           chip.innerHTML = `
             <span><strong>${item.name}</strong> (₹${item.rate})</span>
-            <button onclick="editMasterItem('${id}')" class="text-blue-600 hover:underline font-bold text-[10px]">Edit</button>
+            <button onclick="editMasterItem('${id}')" class="text-blue-600 font-bold text-[10px]">Edit</button>
             <button onclick="deleteMasterItem('${id}')" class="text-red-500 font-bold text-[10px]">✕</button>
           `;
           listCont.appendChild(chip);
@@ -303,7 +309,6 @@
       const name = document.getElementById("masterName").value.trim();
       const rate = parseFloat(document.getElementById("masterRate").value) || 0;
       const photo = document.getElementById("masterPhoto").value.trim();
-      
       if (!name) return alert("Enter item name!");
       db.ref("masterCatalog").push({ name, rate, photo }).then(() => {
         document.getElementById("masterName").value = "";
@@ -318,17 +323,11 @@
       if (newName === null) return;
       const newRate = prompt("Edit Rate (₹):", item.rate);
       if (newRate === null) return;
-
-      db.ref("masterCatalog/" + id).update({
-        name: newName.trim(),
-        rate: parseFloat(newRate) || 0
-      });
+      db.ref("masterCatalog/" + id).update({ name: newName.trim(), rate: parseFloat(newRate) || 0 });
     }
 
     function deleteMasterItem(id) {
-      if (confirm("Delete this master material?")) {
-        db.ref("masterCatalog/" + id).remove();
-      }
+      if (confirm("Delete this master material?")) db.ref("masterCatalog/" + id).remove();
     }
 
     function listenSites() {
@@ -377,23 +376,28 @@
       });
     }
 
-    function onMasterSelect() {
-      calculatePreview();
+    function applyDateFilter() {
+      selectedDateFilter = document.getElementById("dateFilterInput").value;
+      renderTable();
     }
+
+    function resetDateFilter() {
+      document.getElementById("dateFilterInput").value = "";
+      selectedDateFilter = "";
+      renderTable();
+    }
+
+    function onMasterSelect() { calculatePreview(); }
 
     function calculatePreview() {
       const masterId = document.getElementById("masterDropdown").value;
       const qty = parseFloat(document.getElementById("itemQty").value) || 0;
       const preview = document.getElementById("calcPreview");
 
-      if (!masterId || qty <= 0) {
-        preview.classList.add("hidden");
-        return;
-      }
+      if (!masterId || qty <= 0) { preview.classList.add("hidden"); return; }
 
       preview.classList.remove("hidden");
       const mat = masterCatalog[masterId];
-
       let sqftPerUnit = 0;
       const match = mat.name.match(/(\d+\.?\d*)\s*[*xX]\s*(\d+\.?\d*)/);
       if (match) sqftPerUnit = parseFloat(match[1]) * parseFloat(match[2]);
@@ -424,7 +428,9 @@
       const totalMult = sqft > 0 ? sqft : qty;
       const amount = totalMult * rate;
 
-      const finalPhoto = workerPhotoInput || mat.photo || "";
+      const now = new Date();
+      const dateString = now.toISOString().split('T')[0];
+      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       const newItem = {
         name: mat.name,
@@ -432,7 +438,9 @@
         sqft: sqft,
         rate: rate,
         amount: amount,
-        photo: finalPhoto
+        photo: workerPhotoInput || mat.photo || "",
+        date: dateString,
+        time: timeString
       };
 
       db.ref("site_data/" + currentSiteId + "/items").push(newItem);
@@ -440,7 +448,6 @@
       document.getElementById("calcPreview").classList.add("hidden");
     }
 
-    // Open Edit Modal for Site Item
     function openEditModal(firebaseId) {
       const item = items.find(i => i.firebaseId === firebaseId);
       if (!item) return;
@@ -449,20 +456,20 @@
       document.getElementById("editItemName").value = item.name;
       document.getElementById("editItemQty").value = item.qty;
       document.getElementById("editItemRate").value = item.rate || 0;
+      document.getElementById("editItemDate").value = item.date || "";
       document.getElementById("editItemPhoto").value = item.photo || "";
 
       document.getElementById("editItemModal").classList.remove("hidden");
     }
 
-    function closeEditModal() {
-      document.getElementById("editItemModal").classList.add("hidden");
-    }
+    function closeEditModal() { document.getElementById("editItemModal").classList.add("hidden"); }
 
     function saveItemEdit() {
       const firebaseId = document.getElementById("editItemId").value;
       const name = document.getElementById("editItemName").value.trim();
       const qty = parseFloat(document.getElementById("editItemQty").value) || 0;
       const rate = parseFloat(document.getElementById("editItemRate").value) || 0;
+      const date = document.getElementById("editItemDate").value;
       const photo = document.getElementById("editItemPhoto").value.trim();
 
       let sqft = 0;
@@ -473,10 +480,8 @@
       const amount = totalMult * rate;
 
       db.ref("site_data/" + currentSiteId + "/items/" + firebaseId).update({
-        name, qty, sqft, rate, amount, photo
-      }).then(() => {
-        closeEditModal();
-      });
+        name, qty, sqft, rate, amount, date, photo
+      }).then(() => closeEditModal());
     }
 
     function deleteItem(id) {
@@ -518,7 +523,18 @@
       tbody.innerHTML = "";
       let total = 0;
 
-      items.forEach((item, index) => {
+      const filteredItems = selectedDateFilter 
+        ? items.filter(i => i.date === selectedDateFilter)
+        : items;
+
+      if (selectedDateFilter) {
+        document.getElementById("activeDateFilterLabel").classList.remove("hidden");
+        document.getElementById("selectedDateText").innerText = selectedDateFilter;
+      } else {
+        document.getElementById("activeDateFilterLabel").classList.add("hidden");
+      }
+
+      filteredItems.forEach((item, index) => {
         total += item.amount || 0;
         const row = document.createElement("tr");
         row.className = "border-b hover:bg-gray-50";
@@ -527,8 +543,11 @@
           ? `<a href="${item.photo}" target="_blank" class="text-blue-600 font-bold text-xs underline">🖼️ View</a>` 
           : `<span class="text-gray-400 text-xs">No Photo</span>`;
 
+        const dateTxt = item.date ? `${item.date}<br><span class="text-[10px] text-gray-400">${item.time || ''}</span>` : '-';
+
         row.innerHTML = `
           <td class="p-3">${index + 1}</td>
+          <td class="p-3 text-xs font-semibold text-gray-600">${dateTxt}</td>
           <td class="p-3 text-center">${photoCell}</td>
           <td class="p-3 font-semibold">${item.name}</td>
           <td class="p-3 text-center">${item.qty}</td>
@@ -553,18 +572,22 @@
       const isAdmin = currentRole === "admin";
       const logoImg = document.getElementById("companyLogoDisplay");
 
+      const filteredItems = selectedDateFilter 
+        ? items.filter(i => i.date === selectedDateFilter)
+        : items;
+
       try {
         if (logoImg && logoImg.src && logoImg.style.display !== 'none') {
           doc.addImage(logoImg, 'PNG', 14, 10, 20, 20);
           doc.setFontSize(16);
           doc.text(companyName, 38, 18);
           doc.setFontSize(11);
-          doc.text(`Site: ${currentSiteName}`, 38, 25);
+          doc.text(`Site: ${currentSiteName} ${selectedDateFilter ? '(Date: '+selectedDateFilter+')' : ''}`, 38, 25);
         } else {
           doc.setFontSize(16);
           doc.text(companyName, 14, 15);
           doc.setFontSize(11);
-          doc.text(`Site: ${currentSiteName}`, 14, 22);
+          doc.text(`Site: ${currentSiteName} ${selectedDateFilter ? '(Date: '+selectedDateFilter+')' : ''}`, 14, 22);
         }
       } catch (e) {
         doc.setFontSize(16);
@@ -574,22 +597,23 @@
       }
 
       doc.setFontSize(9);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()} | Access Level: ${currentRole.toUpperCase()}`, 14, 32);
+      doc.text(`Report Generated on: ${new Date().toLocaleDateString()}`, 14, 32);
 
       const tableHeaders = isAdmin 
-        ? [["#", "Item Description", "Qty", "Total Sqft", "Rate (INR)", "Amount (INR)"]]
-        : [["#", "Item Description", "Qty", "Total Sqft"]];
+        ? [["#", "Date", "Item Description", "Qty", "Total Sqft", "Rate (INR)", "Amount (INR)"]]
+        : [["#", "Date", "Item Description", "Qty", "Total Sqft"]];
 
-      const tableRows = items.map((item, index) => {
+      const tableRows = filteredItems.map((item, index) => {
         const sqftTxt = item.sqft > 0 ? item.sqft.toFixed(2) : "-";
+        const dTxt = item.date || "-";
         return isAdmin 
-          ? [index + 1, item.name, item.qty, sqftTxt, (item.rate || 0).toFixed(2), (item.amount || 0).toFixed(2)]
-          : [index + 1, item.name, item.qty, sqftTxt];
+          ? [index + 1, dTxt, item.name, item.qty, sqftTxt, (item.rate || 0).toFixed(2), (item.amount || 0).toFixed(2)]
+          : [index + 1, dTxt, item.name, item.qty, sqftTxt];
       });
 
       if (isAdmin) {
-        const grandTotal = items.reduce((sum, i) => sum + (i.amount || 0), 0);
-        tableRows.push(["", "", "", "", "Total:", `INR ${grandTotal.toFixed(2)}`]);
+        const grandTotal = filteredItems.reduce((sum, i) => sum + (i.amount || 0), 0);
+        tableRows.push(["", "", "", "", "", "Total:", `INR ${grandTotal.toFixed(2)}`]);
       }
 
       doc.autoTable({
@@ -600,7 +624,7 @@
         headStyles: { fillStyle: [30, 58, 138] }
       });
 
-      doc.save(`${companyName.replace(/\s+/g, '_')}_${currentSiteName.replace(/\s+/g, '_')}.pdf`);
+      doc.save(`${companyName.replace(/\s+/g, '_')}_${currentSiteName.replace(/\s+/g, '_')}_History.pdf`);
     }
   </script>
 </body>
