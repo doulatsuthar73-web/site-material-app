@@ -13,7 +13,7 @@
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800 font-sans pb-10">
 
-  <!-- Header with Company Logo & Name -->
+  <!-- Header -->
   <header class="bg-blue-900 text-white p-4 shadow-md flex justify-between items-center flex-wrap gap-2">
     <div class="flex items-center gap-3">
       <img id="companyLogoDisplay" src="logo.png" onerror="this.style.display='none'" alt="Logo" class="w-12 h-12 object-contain bg-white p-1 rounded-md shadow">
@@ -30,21 +30,21 @@
     </div>
   </header>
 
-  <div class="max-w-4xl mx-auto p-4">
+  <div class="max-w-5xl mx-auto p-4">
 
     <!-- Admin Settings Panel -->
     <div id="adminSettingsPanel" class="bg-white p-4 rounded-lg shadow mb-6 border-l-4 border-blue-900">
       <h2 class="text-md font-bold text-blue-900 mb-3">⚙️ Admin Control Panel</h2>
       
-      <!-- Company Details & Logo Setting -->
+      <!-- Company Details -->
       <div class="mb-4 pb-3 border-b grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Company Name</label>
-          <input type="text" id="companyInput" placeholder="Enter Company Name" class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-blue-900">
+          <input type="text" id="companyInput" placeholder="Enter Company Name" class="w-full p-2 border rounded text-sm">
         </div>
         <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Logo Image URL (Optional)</label>
-          <input type="text" id="logoInput" placeholder="Paste Logo Image Link or keep logo.png" class="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-blue-900">
+          <label class="block text-xs font-bold text-gray-600 mb-1">Logo Image URL</label>
+          <input type="text" id="logoInput" placeholder="Paste Logo Image Link or logo.png" class="w-full p-2 border rounded text-sm">
         </div>
         <div class="sm:col-span-2 text-right">
           <button onclick="saveCompanyDetails()" class="bg-blue-900 text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-800">Save Company Details</button>
@@ -61,20 +61,26 @@
           <label class="block text-xs font-bold text-gray-600 mb-1">Add New Site</label>
           <div class="flex gap-2">
             <input type="text" id="newSiteInput" placeholder="e.g. Kesar Site" class="flex-1 p-2 border rounded text-sm">
-            <button onclick="addNewSite()" class="bg-blue-900 text-white px-3 py-2 rounded text-sm font-bold">+ Add</button>
+            <button onclick="addNewSite()" class="bg-blue-900 text-white px-3 py-2 rounded text-sm font-bold">+ Add Site</button>
           </div>
         </div>
       </div>
 
       <!-- Master Material Creator -->
       <div>
-        <h3 class="text-xs font-bold text-gray-700 mb-2">➕ Fix Master Material Item (Preset for Workers)</h3>
+        <h3 class="text-xs font-bold text-gray-700 mb-2">➕ Add / Master Material Catalog</h3>
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
           <input type="text" id="masterName" placeholder="Material Name & Size (e.g. 18mm Plywood 8*4)" class="p-2 border rounded text-xs sm:col-span-2">
           <input type="number" id="masterRate" placeholder="Fixed Rate (₹)" class="p-2 border rounded text-xs">
           <input type="text" id="masterPhoto" placeholder="Default Photo Link (Optional)" class="p-2 border rounded text-xs">
         </div>
-        <button onclick="saveMasterItem()" class="mt-2 bg-green-700 text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-green-800">+ Add to Master Catalog</button>
+        <button onclick="saveMasterItem()" class="mt-2 bg-green-700 text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-green-800">+ Add Master Item</button>
+
+        <!-- Master Catalog List Preview / Edit -->
+        <div class="mt-4 border-t pt-3">
+          <h4 class="text-xs font-bold text-gray-600 mb-2">Saved Master Materials (Click Edit to update rate/name):</h4>
+          <div id="masterListContainer" class="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-1 bg-gray-50 rounded border"></div>
+        </div>
       </div>
     </div>
 
@@ -91,12 +97,12 @@
 
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Sheets / Quantity</label>
-          <input type="number" id="itemQty" required min="1" placeholder="e.g. 10" oninput="calculatePreview()" class="w-full p-2 border rounded text-sm focus:ring-1 focus:ring-blue-900">
+          <input type="number" id="itemQty" required min="1" step="any" placeholder="e.g. 10" oninput="calculatePreview()" class="w-full p-2 border rounded text-sm">
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Photo Link (Worker Optional)</label>
-          <input type="text" id="workerPhoto" placeholder="Paste Photo Link" class="w-full p-2 border rounded text-sm focus:ring-1 focus:ring-blue-900">
+          <label class="block text-xs font-bold text-gray-600 mb-1">Photo Link (Optional)</label>
+          <input type="text" id="workerPhoto" placeholder="Paste Photo Link" class="w-full p-2 border rounded text-sm">
         </div>
 
         <div class="flex items-end">
@@ -155,11 +161,45 @@
   <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
       <h3 class="text-lg font-bold text-gray-800 mb-2">Access Code Verification</h3>
-      <p class="text-xs text-gray-500 mb-4">Worker Access Code: <span class="font-bold">DHI0001</span></p>
+      <p class="text-xs text-gray-500 mb-4">Worker Code: <span class="font-bold">DHI0001</span></p>
       <input type="password" id="accessCodeInput" placeholder="Enter Access Code" class="w-full p-2 border rounded mb-4 text-sm">
       <div class="flex justify-end gap-2">
         <button onclick="toggleAuthModal()" class="px-4 py-2 text-xs text-gray-500">Cancel</button>
         <button onclick="verifyAccessCode()" class="px-4 py-2 text-xs bg-blue-900 text-white rounded font-bold">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Edit Table Item -->
+  <div id="editItemModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg p-5 max-w-md w-full shadow-xl">
+      <h3 class="text-md font-bold text-gray-800 mb-3">✏️ Edit Site Material Item</h3>
+      <input type="hidden" id="editItemId">
+      
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold mb-1">Item Name</label>
+          <input type="text" id="editItemName" class="w-full p-2 border rounded">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold mb-1">Quantity</label>
+            <input type="number" id="editItemQty" step="any" class="w-full p-2 border rounded">
+          </div>
+          <div class="admin-only">
+            <label class="block font-bold mb-1">Rate (₹)</label>
+            <input type="number" id="editItemRate" step="any" class="w-full p-2 border rounded">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold mb-1">Photo URL</label>
+          <input type="text" id="editItemPhoto" class="w-full p-2 border rounded">
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-4">
+        <button onclick="closeEditModal()" class="px-4 py-1.5 text-xs text-gray-500 border rounded">Cancel</button>
+        <button onclick="saveItemEdit()" class="px-4 py-1.5 text-xs bg-blue-900 text-white rounded font-bold">Save Changes</button>
       </div>
     </div>
   </div>
@@ -179,6 +219,18 @@
     let currentSiteName = "Default Site";
     let masterCatalog = {};
     let items = [];
+
+    // Default Materials List
+    const defaultMasterItems = [
+      { name: "18mm Plywood 8*4", rate: 60, photo: "" },
+      { name: "12mm Plywood 8*4", rate: 45, photo: "" },
+      { name: "12mm Plywood 7*4", rate: 45, photo: "" },
+      { name: "6mm Plywood 8*4", rate: 28, photo: "" },
+      { name: "Flush Door 7*3", rate: 1200, photo: "" },
+      { name: "SF Laminate 8*4", rate: 450, photo: "" },
+      { name: "1mm Acrylic Sheet 8*4", rate: 1800, photo: "" },
+      { name: "Fevicol SH 5kg", rate: 1100, photo: "" }
+    ];
 
     window.onload = function() {
       listenCompany();
@@ -209,15 +261,40 @@
 
     function listenMasterCatalog() {
       db.ref("masterCatalog").on("value", (snap) => {
-        masterCatalog = snap.val() || {};
+        masterCatalog = snap.val();
+        
+        // Auto initialize default catalog if empty
+        if (!masterCatalog) {
+          defaultMasterItems.forEach(item => {
+            db.ref("masterCatalog").push(item);
+          });
+          return;
+        }
+
         const drop = document.getElementById("masterDropdown");
+        const listCont = document.getElementById("masterListContainer");
+        
         drop.innerHTML = '<option value="">-- Select Pre-fixed Item --</option>';
+        listCont.innerHTML = "";
+
         Object.keys(masterCatalog).forEach(id => {
           const item = masterCatalog[id];
+          
+          // Dropdown option
           const opt = document.createElement("option");
           opt.value = id;
           opt.innerText = item.name + (currentRole === 'admin' ? ` (₹${item.rate})` : '');
           drop.appendChild(opt);
+
+          // Admin Master Edit Chips
+          const chip = document.createElement("div");
+          chip.className = "bg-white border rounded px-2 py-1 text-xs flex items-center gap-2 shadow-sm";
+          chip.innerHTML = `
+            <span><strong>${item.name}</strong> (₹${item.rate})</span>
+            <button onclick="editMasterItem('${id}')" class="text-blue-600 hover:underline font-bold text-[10px]">Edit</button>
+            <button onclick="deleteMasterItem('${id}')" class="text-red-500 font-bold text-[10px]">✕</button>
+          `;
+          listCont.appendChild(chip);
         });
       });
     }
@@ -233,6 +310,25 @@
         document.getElementById("masterRate").value = "";
         document.getElementById("masterPhoto").value = "";
       });
+    }
+
+    function editMasterItem(id) {
+      const item = masterCatalog[id];
+      const newName = prompt("Edit Item Name:", item.name);
+      if (newName === null) return;
+      const newRate = prompt("Edit Rate (₹):", item.rate);
+      if (newRate === null) return;
+
+      db.ref("masterCatalog/" + id).update({
+        name: newName.trim(),
+        rate: parseFloat(newRate) || 0
+      });
+    }
+
+    function deleteMasterItem(id) {
+      if (confirm("Delete this master material?")) {
+        db.ref("masterCatalog/" + id).remove();
+      }
     }
 
     function listenSites() {
@@ -344,8 +440,49 @@
       document.getElementById("calcPreview").classList.add("hidden");
     }
 
+    // Open Edit Modal for Site Item
+    function openEditModal(firebaseId) {
+      const item = items.find(i => i.firebaseId === firebaseId);
+      if (!item) return;
+
+      document.getElementById("editItemId").value = firebaseId;
+      document.getElementById("editItemName").value = item.name;
+      document.getElementById("editItemQty").value = item.qty;
+      document.getElementById("editItemRate").value = item.rate || 0;
+      document.getElementById("editItemPhoto").value = item.photo || "";
+
+      document.getElementById("editItemModal").classList.remove("hidden");
+    }
+
+    function closeEditModal() {
+      document.getElementById("editItemModal").classList.add("hidden");
+    }
+
+    function saveItemEdit() {
+      const firebaseId = document.getElementById("editItemId").value;
+      const name = document.getElementById("editItemName").value.trim();
+      const qty = parseFloat(document.getElementById("editItemQty").value) || 0;
+      const rate = parseFloat(document.getElementById("editItemRate").value) || 0;
+      const photo = document.getElementById("editItemPhoto").value.trim();
+
+      let sqft = 0;
+      const match = name.match(/(\d+\.?\d*)\s*[*xX]\s*(\d+\.?\d*)/);
+      if (match) sqft = parseFloat(match[1]) * parseFloat(match[2]) * qty;
+
+      const totalMult = sqft > 0 ? sqft : qty;
+      const amount = totalMult * rate;
+
+      db.ref("site_data/" + currentSiteId + "/items/" + firebaseId).update({
+        name, qty, sqft, rate, amount, photo
+      }).then(() => {
+        closeEditModal();
+      });
+    }
+
     function deleteItem(id) {
-      db.ref("site_data/" + currentSiteId + "/items/" + id).remove();
+      if (confirm("Delete this item from site list?")) {
+        db.ref("site_data/" + currentSiteId + "/items/" + id).remove();
+      }
     }
 
     function toggleAuthModal() {
@@ -398,7 +535,8 @@
           <td class="p-3 text-center text-gray-600 font-semibold">${item.sqft > 0 ? item.sqft.toFixed(2) + ' sqft' : '-'}</td>
           ${isAdmin ? `<td class="p-3 text-right">₹${(item.rate || 0).toFixed(2)}</td>` : ""}
           ${isAdmin ? `<td class="p-3 text-right font-semibold">₹${(item.amount || 0).toFixed(2)}</td>` : ""}
-          <td class="p-3 text-center">
+          <td class="p-3 text-center flex justify-center gap-2">
+            <button onclick="openEditModal('${item.firebaseId}')" class="text-blue-600 hover:text-blue-800 font-bold text-xs">Edit</button>
             <button onclick="deleteItem('${item.firebaseId}')" class="text-red-500 hover:text-red-700 font-bold text-xs">Delete</button>
           </td>
         `;
@@ -414,8 +552,6 @@
       const companyName = document.getElementById("companyDisplay").innerText;
       const isAdmin = currentRole === "admin";
       const logoImg = document.getElementById("companyLogoDisplay");
-
-      let startY = 34;
 
       try {
         if (logoImg && logoImg.src && logoImg.style.display !== 'none') {
