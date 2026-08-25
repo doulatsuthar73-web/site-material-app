@@ -3,249 +3,171 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Site Material Management App</title>
+  <title>Design Home Interior - Easy Worker Material List</title>
   <style>
     * { box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 10px; background-color: #f4f6f9; color: #333; }
-    .container { max-width: 900px; margin: auto; }
+    .container { max-width: 1000px; margin: auto; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     
-    /* Dynamic Header */
-    .header { background: #fff; padding: 12px 15px; border-radius: 8px; border-bottom: 3px solid #007bff; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .company-name { font-size: 18px; font-weight: bold; color: #1a365d; margin: 0; }
-    .site-badge { background: #007bff; color: white; padding: 4px 10px; border-radius: 20px; font-size: 13px; font-weight: bold; }
+    .header { border-bottom: 2px solid #1a365d; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .company-title { font-size: 18px; font-weight: bold; color: #1a365d; margin: 0; }
     
-    /* App Mode Toggle Bar */
-    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 4px; }
-    .role-btn { background: #6c757d; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; }
-
-    /* Card Layouts */
-    .card { background: #fff; border-radius: 8px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e1e4e8; }
-    .card-title { font-size: 15px; font-weight: bold; margin-top: 0; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; color: #2b6cb0; }
+    .site-bar { background: #eef6ff; padding: 10px; border-radius: 6px; border: 1px solid #bfe0ff; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
+    .site-bar label { font-weight: bold; font-size: 13px; color: #1a365d; }
+    select, input { padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; width: 100%; }
     
-    /* Worker Input Section - High Prominence */
-    .worker-card { border: 2px solid #28a745; background: #f8fff9; }
-    .form-group { margin-bottom: 10px; }
-    label { font-weight: bold; font-size: 13px; display: block; margin-bottom: 4px; color: #4a5568; }
-    select, input { width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 16px; background: #fff; }
-    select:focus, input:focus { border-color: #007bff; outline: none; }
+    /* Table Styling for Easy Input */
+    .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; min-width: 700px; border-collapse: collapse; font-size: 13px; margin-top: 5px; }
+    th, td { border: 1px solid #000; padding: 6px 4px; text-align: center; vertical-align: middle; }
+    th { background-color: #d9e2ec; color: #102a43; font-weight: bold; }
+    tr:nth-child(even) { background-color: #f8f9fa; }
     
-    .btn-add { background: #28a745; color: white; border: none; font-size: 18px; font-weight: bold; padding: 14px; width: 100%; border-radius: 6px; cursor: pointer; margin-top: 5px; }
-    .btn-pdf { background: #dc3545; color: white; border: none; font-size: 14px; font-weight: bold; padding: 8px 14px; border-radius: 6px; cursor: pointer; }
-
-    /* Table Responsiveness */
-    .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; }
-    table { width: 100%; min-width: 650px; border-collapse: collapse; font-size: 13px; background: #fff; }
-    th, td { border: 1px solid #cbd5e0; padding: 8px 6px; text-align: center; vertical-align: middle; }
-    th { background: #edf2f7; color: #2d3748; font-weight: bold; }
-    .text-left { text-align: left; }
-    .qty-edit { width: 60px; text-align: center; padding: 6px; font-weight: bold; font-size: 15px; border: 2px solid #007bff; border-radius: 4px; background: #ebf8ff; }
+    .text-left { text-align: left; font-size: 13px; }
+    .qty-input { width: 60px; text-align: center; font-weight: bold; padding: 6px; border: 2px solid #007bff; background: #eef6ff; font-size: 15px; border-radius: 4px; }
+    .size-input { width: 100px; padding: 5px; font-size: 12px; border: 1px solid #aaa; border-radius: 4px; }
     
-    /* Payment Summary Box */
-    .summary-box { background: #ebf8ff; border: 1px solid #bee3f8; border-radius: 6px; padding: 12px; margin-top: 12px; text-align: right; }
-    .total-amount { font-size: 20px; font-weight: bold; color: #2b6cb0; }
-
-    @media print {
-      .no-print { display: none !important; }
-      body { background: white; padding: 0; }
-      .container { max-width: 100%; }
-      .table-responsive { overflow-x: visible; }
-      table { min-width: 100%; }
-    }
+    /* Camera & Image Input Styling */
+    .cam-btn { background: #6c757d; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; display: inline-block; }
+    .img-preview { width: 35px; height: 35px; object-fit: cover; border-radius: 4px; border: 1px solid #007bff; }
+    
+    /* Bottom Summary & WhatsApp Action */
+    .footer-action { margin-top: 15px; padding-top: 12px; border-top: 2px solid #1a365d; text-align: center; }
+    .total-box { font-size: 18px; font-weight: bold; color: #2b6cb0; margin-bottom: 12px; text-align: right; background: #ebf8ff; padding: 10px; border-radius: 6px; }
+    
+    .btn-whatsapp { background-color: #25D366; color: white; border: none; font-size: 18px; font-weight: bold; padding: 14px 20px; border-radius: 8px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 3px 6px rgba(0,0,0,0.2); }
+    .btn-whatsapp:active { transform: scale(0.98); }
   </style>
 </head>
 <body>
 
 <div class="container">
 
-  <div class="top-bar no-print">
-    <span id="roleLabel" style="font-size: 12px; font-weight: bold; color: #718096;">Mode: Worker View</span>
-    <button class="role-btn" onclick="toggleRole()">Switch Admin/Worker</button>
-  </div>
-
   <div class="header">
     <div>
-      <h1 class="company-name" id="displayCompanyName">Design Home Interior</h1>
-      <small style="color: #718096; font-size: 11px;">Site Material Requisition App</small>
+      <h1 class="company-title">Design Home Interior</h1>
+      <small style="color: #666; font-size: 11px;">Worker Site Requisition</small>
     </div>
-    <div class="site-badge" id="displaySiteBadge">Default Site</div>
+    <span id="dateTimeStamp" style="font-size: 11px; font-weight: bold; color: #555;"></span>
   </div>
 
-  <!-- Admin Control Panel (Only visible in Admin Mode) -->
-  <div class="card no-print" id="adminPanel" style="display: none; background: #fffaf0; border-color: #dd6b20;">
-    <h3 style="margin-top:0; color: #c05621; font-size: 15px;">⚙️ Admin Controls</h3>
-    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
-      <div style="flex: 1; min-width: 140px;">
-        <label>Add New Site Name:</label>
-        <input type="text" id="newSiteInput" placeholder="e.g. Kesar Villa">
-      </div>
-      <button style="background: #dd6b20; color:white; border:none; padding:10px 15px; border-radius:6px; font-weight:bold; align-self:flex-end;" onclick="addNewSite()">+ Create Site</button>
-    </div>
-  </div>
-
-  <!-- Worker Add Material Section -->
-  <div class="card worker-card no-print">
-    <div class="card-title" style="color: #276749;">
-      <span>📌 Add Material To Site List</span>
-    </div>
-    
-    <div class="form-group">
-      <label>1. Select Active Site (साइट चुनें):</label>
+  <div class="site-bar">
+    <div>
+      <label>📍 Active Site Name (साइट का नाम):</label>
       <select id="siteSelect" onchange="switchSite()"></select>
     </div>
-
-    <div class="form-group">
-      <label>2. Select Material Name (सामग्री चुनें):</label>
-      <select id="materialSelect">
-        <option value="">-- Choose Item from Master List --</option>
-      </select>
+    <div style="display: flex; gap: 5px;">
+      <input type="text" id="newSiteInput" placeholder="+ Nayi Site Ka Naam">
+      <button style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-weight: bold; min-width: 80px;" onclick="addNewSite()">Add</button>
     </div>
-
-    <div style="display: flex; gap: 10px;">
-      <div class="form-group" style="flex: 1;">
-        <label>3. Quantity / Sheets (नंबर/मात्रा):</label>
-        <input type="number" id="materialQty" placeholder="e.g. 10" min="0.1" step="any">
-      </div>
-      <div class="form-group" style="flex: 1;">
-        <label>4. Photo Link (Optional):</label>
-        <input type="text" id="materialPhoto" placeholder="Paste Image Link">
-      </div>
-    </div>
-
-    <button class="btn-add" onclick="addItemToList()">+ ADD MATERIAL (सूची में जोड़ें)</button>
   </div>
 
-  <!-- Material List Output & History Tracking -->
-  <div class="card">
-    <div class="card-title">
-      <span>📋 Site Record & Payment Summary</span>
-      <button class="btn-pdf no-print" onclick="window.print()">📄 Print / Save PDF</button>
+  <div style="background: #343a40; color: white; text-align: center; padding: 8px; font-size: 14px; font-weight: bold; border-radius: 4px; margin-bottom: 8px;">
+    READY MATERIAL LIST (QTY & SIZE BHAREIN)
+  </div>
+
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 30px;">#</th>
+          <th style="min-width: 140px;" class="text-left">MATERIAL NAME</th>
+          <th style="width: 70px;">QTY</th>
+          <th style="min-width: 110px;">SIZE / NOTE</th>
+          <th style="min-width: 75px;">RATE</th>
+          <th style="min-width: 85px;">AMOUNT</th>
+          <th style="width: 75px;">PHOTO</th>
+        </tr>
+      </thead>
+      <tbody id="materialTableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="footer-action">
+    <div class="total-box">
+      Total Estimated Amount: ₹<span id="grandTotal">0.00</span>
     </div>
 
-    <div class="no-print" style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px; background: #edf2f7; padding: 8px; border-radius: 6px;">
-      <label style="margin:0; min-width: 110px;">📅 Filter Date:</label>
-      <input type="date" id="dateFilter" onchange="renderTable()" style="padding:6px; font-size:13px;">
-      <button onclick="clearDateFilter()" style="padding:6px 12px; font-size:12px; background:#e2e8f0; border:1px solid #cbd5e0; border-radius:4px; cursor:pointer;">Show All</button>
-    </div>
-
-    <div class="table-responsive">
-      <table>
-        <thead>
-          <tr>
-            <th style="width: 35px;">#</th>
-            <th style="min-width: 100px;">Date & Time</th>
-            <th style="min-width: 140px;" class="text-left">Material Name</th>
-            <th style="width: 70px;">Qty</th>
-            <th style="min-width: 80px;">Sqft / Unit</th>
-            <th style="min-width: 70px;">Rate (₹)</th>
-            <th style="min-width: 90px;">Total Amount</th>
-            <th style="width: 45px;">Pic</th>
-            <th class="no-print" style="width: 45px;">Del</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-      </table>
-    </div>
-
-    <div class="summary-box">
-      <span style="font-size: 13px; color: #4a5568;">Total Payment Due for <b id="summarySiteTitle">Default Site</b>:</span><br>
-      <span class="total-amount">₹<span id="grandTotal">0.00</span></span>
-    </div>
+    <button class="btn-whatsapp" onclick="sendToWhatsApp()">
+      📲 ADMIN KO WHATSAPP PAR BHEJEIN
+    </button>
   </div>
 
 </div>
 
 <script>
+  const adminWhatsAppNumber = "919799433172"; // Admin WhatsApp Number
+
   const masterCatalog = [
-    { id: 1, name: "18mm Plywood (8*4/7*4)", rate: 60, sqftFactor: 32 },
-    { id: 2, name: "12mm Plywood (8*4/7*4)", rate: 45, sqftFactor: 28 },
-    { id: 3, name: "08mm Plywood (8*4/7*4)", rate: 40, sqftFactor: 28 },
-    { id: 4, name: "06mm Plywood (8*4/7*4)", rate: 30, sqftFactor: 28 },
-    { id: 5, name: "18mm HDHMR Sheet (8*4)", rate: 60, sqftFactor: 32 },
-    { id: 6, name: "12mm HDHMR Sheet (8*4)", rate: 45, sqftFactor: 32 },
-    { id: 7, name: "08mm HDHMR Sheet (8*4)", rate: 32, sqftFactor: 32 },
-    { id: 8, name: "06mm HDHMR Sheet (8*4)", rate: 28, sqftFactor: 32 },
-    { id: 9, name: "04mm HDHMR Sheet (8*4)", rate: 25, sqftFactor: 32 },
-    { id: 10, name: "0.8mm Internal Laminate White", rate: 500, unit: "Sheet" },
-    { id: 11, name: "0.8mm Internal Laminate Fabric", rate: 550, unit: "Sheet" },
-    { id: 12, name: "0.8mm Internal Laminate Other", rate: 500, unit: "Sheet" },
-    { id: 13, name: "Fevicol (KG)", rate: 220, unit: "KG" },
-    { id: 14, name: "Abro tape Roll (Nos)", rate: 120, unit: "Nos" },
-    { id: 15, name: "Nails 19 *3/4 (KG)", rate: 90, unit: "KG" },
-    { id: 16, name: "Nails 17 *3/4 (KG)", rate: 90, unit: "KG" },
-    { id: 17, name: "Nails 17 *1 (KG)", rate: 90, unit: "KG" },
-    { id: 18, name: "Nails 17 *1.1/4 (KG)", rate: 90, unit: "KG" },
-    { id: 19, name: "Nails 14 *1.3/4 (KG)", rate: 90, unit: "KG" },
-    { id: 20, name: "Screws 10*100 star (Box)", rate: 400, unit: "Box" },
-    { id: 21, name: "Screws 10*75 star (Box)", rate: 400, unit: "Box" },
-    { id: 22, name: "Screws 8*75 star (Box)", rate: 400, unit: "Box" },
-    { id: 23, name: "Screws 8*60 star (Box)", rate: 400, unit: "Box" },
-    { id: 24, name: "Screws 8*38 star (Box)", rate: 400, unit: "Box" },
-    { id: 25, name: "Screws 8*32 star (Box)", rate: 400, unit: "Box" },
-    { id: 26, name: "Screws 6*32 star (Box)", rate: 400, unit: "Box" },
-    { id: 27, name: "Screws 6*19 star (Box)", rate: 400, unit: "Box" },
-    { id: 28, name: "Screws 6*13 star (Box)", rate: 400, unit: "Box" },
-    { id: 29, name: "Shelf thread Screws 6*32", rate: 400, unit: "Box" },
-    { id: 30, name: "Shelf thread Screws 6*19", rate: 400, unit: "Box" },
-    { id: 31, name: "6mm Rawal plug (Box)", rate: 400, unit: "Box" },
-    { id: 32, name: "Carcass Edge Banding 0.8mm", rate: 25, unit: "MTR" }
+    { id: 1, name: "18mm Plywood", defaultSize: "8*4/7*4", rate: 60, isSqft: true, sqft: 32 },
+    { id: 2, name: "12mm Plywood", defaultSize: "8*4/7*4", rate: 45, isSqft: true, sqft: 28 },
+    { id: 3, name: "08mm Plywood", defaultSize: "8*4/7*4", rate: 40, isSqft: true, sqft: 28 },
+    { id: 4, name: "06mm Plywood", defaultSize: "8*4/7*4", rate: 30, isSqft: true, sqft: 28 },
+    { id: 5, name: "18mm HDHMR Sheet", defaultSize: "8*4", rate: 60, isSqft: true, sqft: 32 },
+    { id: 6, name: "12mm HDHMR Sheet", defaultSize: "8*4", rate: 45, isSqft: true, sqft: 32 },
+    { id: 7, name: "08mm HDHMR Sheet", defaultSize: "8*4", rate: 32, isSqft: true, sqft: 32 },
+    { id: 8, name: "06mm HDHMR Sheet", defaultSize: "8*4", rate: 28, isSqft: true, sqft: 32 },
+    { id: 9, name: "04mm HDHMR Sheet", defaultSize: "8*4", rate: 25, isSqft: true, sqft: 32 },
+    { id: 10, name: "0.8mm Internal Laminate White", defaultSize: "8*4 Sheet", rate: 500 },
+    { id: 11, name: "0.8mm Internal Laminate Fabric", defaultSize: "8*4 Sheet", rate: 550 },
+    { id: 12, name: "0.8mm Internal Laminate Other", defaultSize: "8*4 Sheet", rate: 500 },
+    { id: 13, name: "Fevicol", defaultSize: "KG", rate: 220 },
+    { id: 14, name: "Abro Tape Roll", defaultSize: "Nos", rate: 120 },
+    { id: 15, name: "Nails 19 *3/4", defaultSize: "KG", rate: 90 },
+    { id: 16, name: "Nails 17 *3/4", defaultSize: "KG", rate: 90 },
+    { id: 17, name: "Nails 17 *1", defaultSize: "KG", rate: 90 },
+    { id: 18, name: "Nails 17 *1.1/4", defaultSize: "KG", rate: 90 },
+    { id: 19, name: "Nails 14 *1.3/4", defaultSize: "KG", rate: 90 },
+    { id: 20, name: "Screws 10*100 star", defaultSize: "Box (100 Pcs)", rate: 400 },
+    { id: 21, name: "Screws 10*75 star", defaultSize: "Box (100 Pcs)", rate: 400 },
+    { id: 22, name: "Screws 8*75 star", defaultSize: "Box (100 Pcs)", rate: 400 },
+    { id: 23, name: "Screws 8*60 star", defaultSize: "Box (100 Pcs)", rate: 400 },
+    { id: 24, name: "Screws 8*38 star", defaultSize: "Box (100 Pcs)", rate: 400 },
+    { id: 25, name: "Screws 8*32 star", defaultSize: "Box (100 Pcs)", rate: 400 },
+    { id: 26, name: "Screws 6*32 star", defaultSize: "Box (100 Pcs)", rate: 400 },
+    { id: 27, name: "Screws 6*19 star", defaultSize: "Box (100 Pcs)", rate: 400 },
+    { id: 28, name: "Screws 6*13 star", defaultSize: "Box (100 Pcs)", rate: 400 },
+    { id: 29, name: "Shelf thread Screws 6*32", defaultSize: "Box (100 Pcs)", rate: 400 },
+    { id: 30, name: "Shelf thread Screws 6*19", defaultSize: "Box (100 Pcs)", rate: 400 },
+    { id: 31, name: "6mm Rawal Plug", defaultSize: "Box (100 Pcs)", rate: 400 },
+    { id: 32, name: "Carcass Edge Banding 0.8mm", defaultSize: "MTR", rate: 25 }
   ];
 
-  let appState = JSON.parse(localStorage.getItem('siteMaterialData')) || {
-    role: 'Worker',
-    activeSite: 'Default Site',
+  let appData = JSON.parse(localStorage.getItem('designHomeWorkerData')) || {
     sites: ['Default Site', 'Kesar Site'],
-    records: {} 
+    activeSite: 'Default Site',
+    inputs: {} // siteWise storage
   };
 
   function init() {
     renderSiteDropdown();
-    renderMaterialDropdown();
     renderTable();
-    updateRoleUI();
+    updateDateTime();
   }
 
-  function toggleRole() {
-    appState.role = appState.role === 'Worker' ? 'Admin' : 'Worker';
-    saveState();
-    updateRoleUI();
-  }
-
-  function updateRoleUI() {
-    document.getElementById('roleLabel').innerText = `Mode: ${appState.role} View`;
-    document.getElementById('adminPanel').style.display = appState.role === 'Admin' ? 'block' : 'none';
+  function updateDateTime() {
+    const now = new Date();
+    document.getElementById('dateTimeStamp').innerText = now.toLocaleDateString('en-GB') + " " + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   }
 
   function renderSiteDropdown() {
     const select = document.getElementById('siteSelect');
     select.innerHTML = '';
-    appState.sites.forEach(site => {
+    appData.sites.forEach(site => {
       const opt = document.createElement('option');
       opt.value = site;
       opt.innerText = site;
-      if (site === appState.activeSite) opt.selected = true;
-      select.appendChild(opt);
-    });
-    document.getElementById('displaySiteBadge').innerText = appState.activeSite;
-    document.getElementById('summarySiteTitle').innerText = appState.activeSite;
-  }
-
-  function renderMaterialDropdown() {
-    const select = document.getElementById('materialSelect');
-    select.innerHTML = '<option value="">-- Choose Item from Master List --</option>';
-    masterCatalog.forEach((item, index) => {
-      const opt = document.createElement('option');
-      opt.value = index;
-      opt.innerText = `${item.name} - ₹${item.rate}`;
+      if (site === appData.activeSite) opt.selected = true;
       select.appendChild(opt);
     });
   }
 
   function addNewSite() {
     const val = document.getElementById('newSiteInput').value.trim();
-    if (val && !appState.sites.includes(val)) {
-      appState.sites.push(val);
-      appState.activeSite = val;
-      saveState();
+    if (val && !appData.sites.includes(val)) {
+      appData.sites.push(val);
+      appData.activeSite = val;
+      saveData();
       renderSiteDropdown();
       renderTable();
       document.getElementById('newSiteInput').value = '';
@@ -253,118 +175,159 @@
   }
 
   function switchSite() {
-    appState.activeSite = document.getElementById('siteSelect').value;
-    saveState();
-    document.getElementById('displaySiteBadge').innerText = appState.activeSite;
-    document.getElementById('summarySiteTitle').innerText = appState.activeSite;
+    appData.activeSite = document.getElementById('siteSelect').value;
+    saveData();
     renderTable();
   }
 
-  function addItemToList() {
-    const matIdx = document.getElementById('materialSelect').value;
-    const qty = parseFloat(document.getElementById('materialQty').value);
-    const photo = document.getElementById('materialPhoto').value.trim();
+  function saveData() {
+    localStorage.setItem('designHomeWorkerData', JSON.stringify(appData));
+  }
 
-    if (matIdx === "" || isNaN(qty) || qty <= 0) {
-      alert("Kripya Material choose karein aur Sahi Quantity bharein!");
-      return;
+  function getSiteInputs() {
+    if (!appData.inputs[appData.activeSite]) {
+      appData.inputs[appData.activeSite] = {};
     }
+    return appData.inputs[appData.activeSite];
+  }
 
-    const item = masterCatalog[matIdx];
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const dateIso = now.toISOString().split('T')[0];
+  function handleQtyChange(id, value) {
+    const inputs = getSiteInputs();
+    if (!inputs[id]) inputs[id] = {};
+    inputs[id].qty = value;
+    saveData();
+    calculateTotals();
+  }
 
-    const record = {
-      id: Date.now(),
-      dateStr: dateStr,
-      dateIso: dateIso,
-      name: item.name,
-      rate: item.rate,
-      sqftFactor: item.sqftFactor || null,
-      unit: item.unit || 'sqft',
-      qty: qty,
-      photo: photo
-    };
+  function handleSizeChange(id, value) {
+    const inputs = getSiteInputs();
+    if (!inputs[id]) inputs[id] = {};
+    inputs[id].size = value;
+    saveData();
+  }
 
-    if (!appState.records[appState.activeSite]) {
-      appState.records[appState.activeSite] = [];
+  function handlePhotoUpload(id, event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const inputs = getSiteInputs();
+        if (!inputs[id]) inputs[id] = {};
+        inputs[id].photo = e.target.result;
+        saveData();
+        renderTable();
+      };
+      reader.readAsDataURL(file);
     }
-    appState.records[appState.activeSite].push(record);
-
-    saveState();
-    renderTable();
-
-    document.getElementById('materialSelect').value = '';
-    document.getElementById('materialQty').value = '';
-    document.getElementById('materialPhoto').value = '';
-  }
-
-  function updateQty(id, newQty) {
-    const list = appState.records[appState.activeSite] || [];
-    const item = list.find(r => r.id === id);
-    if (item && newQty > 0) {
-      item.qty = parseFloat(newQty);
-      saveState();
-      renderTable();
-    }
-  }
-
-  function deleteItem(id) {
-    appState.records[appState.activeSite] = appState.records[appState.activeSite].filter(r => r.id !== id);
-    saveState();
-    renderTable();
-  }
-
-  function clearDateFilter() {
-    document.getElementById('dateFilter').value = '';
-    renderTable();
   }
 
   function renderTable() {
-    const tbody = document.getElementById('tableBody');
+    const tbody = document.getElementById('materialTableBody');
     tbody.innerHTML = '';
+    const currentInputs = getSiteInputs();
 
-    let list = appState.records[appState.activeSite] || [];
-    const filterDate = document.getElementById('dateFilter').value;
+    masterCatalog.forEach((item) => {
+      const itemData = currentInputs[item.id] || {};
+      const qtyVal = itemData.qty || '';
+      const sizeVal = itemData.size !== undefined ? itemData.size : item.defaultSize;
+      const photoVal = itemData.photo || '';
 
-    if (filterDate) {
-      list = list.filter(r => r.dateIso === filterDate);
-    }
-
-    let grandTotal = 0;
-
-    list.forEach((rec, idx) => {
-      let totalSqft = rec.sqftFactor ? (rec.qty * rec.sqftFactor) : '-';
-      let amount = rec.sqftFactor ? (totalSqft * rec.rate) : (rec.qty * rec.rate);
-      grandTotal += amount;
-
-      const photoIcon = rec.photo ? `<a href="${rec.photo}" target="_blank">📷</a>` : '-';
+      const photoHtml = photoVal 
+        ? `<img src="${photoVal}" class="img-preview" onclick="triggerFileInput(${item.id})">`
+        : `<button class="cam-btn" onclick="triggerFileInput(${item.id})">📷</button>`;
 
       tbody.innerHTML += `
         <tr>
-          <td>${idx + 1}</td>
-          <td><small>${rec.dateStr}</small></td>
-          <td class="text-left"><b>${rec.name}</b></td>
+          <td>${item.id}</td>
+          <td class="text-left"><b>${item.name}</b></td>
           <td>
-            <input type="number" class="qty-edit" value="${rec.qty}" min="0.1" step="any" onchange="updateQty(${rec.id}, this.value)">
+            <input type="number" class="qty-input" value="${qtyVal}" placeholder="0" min="0" oninput="handleQtyChange(${item.id}, this.value)">
           </td>
-          <td>${totalSqft !== '-' ? totalSqft.toFixed(1) + ' sqft' : rec.qty + ' ' + rec.unit}</td>
-          <td>₹${rec.rate}</td>
-          <td><b>₹${amount.toFixed(2)}</b></td>
-          <td>${photoIcon}</td>
-          <td class="no-print">
-            <button style="background:red; color:white; border:none; padding:3px 6px; border-radius:3px; cursor:pointer;" onclick="deleteItem(${rec.id})">✕</button>
+          <td>
+            <input type="text" class="size-input" value="${sizeVal}" oninput="handleSizeChange(${item.id}, this.value)">
+          </td>
+          <td>₹${item.rate}</td>
+          <td id="amount-${item.id}">₹0.00</td>
+          <td>
+            ${photoHtml}
+            <input type="file" id="file-${item.id}" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoUpload(${item.id}, event)">
           </td>
         </tr>
       `;
     });
 
+    calculateTotals();
+  }
+
+  function triggerFileInput(id) {
+    document.getElementById(`file-${id}`).click();
+  }
+
+  function calculateTotals() {
+    let grandTotal = 0;
+    const currentInputs = getSiteInputs();
+
+    masterCatalog.forEach((item) => {
+      const itemData = currentInputs[item.id] || {};
+      const qty = parseFloat(itemData.qty) || 0;
+      let amount = 0;
+
+      if (qty > 0) {
+        if (item.isSqft) {
+          amount = qty * item.sqft * item.rate;
+        } else {
+          amount = qty * item.rate;
+        }
+      }
+
+      grandTotal += amount;
+      const amtEl = document.getElementById(`amount-${item.id}`);
+      if (amtEl) amtEl.innerText = `₹${amount.toFixed(2)}`;
+    });
+
     document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
   }
 
-  function saveState() {
-    localStorage.setItem('siteMaterialData', JSON.stringify(appState));
+  function sendToWhatsApp() {
+    const currentInputs = getSiteInputs();
+    let message = `*DESIGN HOME INTERIOR*\n`;
+    message += `📍 *Site:* ${appData.activeSite}\n`;
+    message += `📅 *Date:* ${document.getElementById('dateTimeStamp').innerText}\n`;
+    message += `------------------------------------\n`;
+    message += `*MATERIAL REQUISITION LIST:*\n\n`;
+
+    let itemCount = 0;
+    let grandTotal = 0;
+
+    masterCatalog.forEach((item) => {
+      const itemData = currentInputs[item.id] || {};
+      const qty = parseFloat(itemData.qty) || 0;
+      const size = itemData.size || item.defaultSize;
+      const hasPhoto = itemData.photo ? "📷 [Photo Attached]" : "";
+
+      if (qty > 0) {
+        itemCount++;
+        let amount = item.isSqft ? (qty * item.sqft * item.rate) : (qty * item.rate);
+        grandTotal += amount;
+
+        message += `${itemCount}. *${item.name}*\n`;
+        message += `   • Qty: *${qty}* | Size/Unit: ${size}\n`;
+        message += `   • Rate: ₹${item.rate} | Amt: *₹${amount.toFixed(2)}* ${hasPhoto}\n\n`;
+      }
+    });
+
+    if (itemCount === 0) {
+      alert("Kripya kam se kam ek material ki Quantity bharein!");
+      return;
+    }
+
+    message += `------------------------------------\n`;
+    message += `💰 *TOTAL AMOUNT: ₹${grandTotal.toFixed(2)}*\n`;
+    message += `------------------------------------\n`;
+    message += `(Worker dwara bheja gaya list)`;
+
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://api.whatsapp.com/send?phone=${adminWhatsAppNumber}&text=${encodedMessage}`, '_blank');
   }
 
   window.onload = init;
