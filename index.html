@@ -3,446 +3,249 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Material Management System with Date History</title>
+  <title>Design Home Interior - Site Material List</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 15px; background-color: #f4f6f9; color: #333; }
-    .container { max-width: 1000px; margin: auto; }
-    .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 8px; }
-    .logo-img { max-height: 50px; max-width: 150px; object-fit: contain; }
-    .card { background: #fff; border-radius: 8px; padding: 15px 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e1e4e8; }
-    .admin-card { border-left: 5px solid #007bff; background: #f8f9fa; }
-    .form-group { margin-bottom: 12px; }
-    label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 13px; color: #555; }
-    input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    button { padding: 8px 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-    .btn-primary { background: #007bff; color: #fff; }
-    .btn-success { background: #28a745; color: #fff; width: 100%; padding: 10px; font-size: 15px; }
-    .btn-danger { background: #dc3545; color: #fff; }
-    .btn-secondary { background: #6c757d; color: #fff; }
-    .flex-row { display: flex; gap: 10px; align-items: flex-end; }
-    .flex-1 { flex: 1; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; background: #fff; }
-    th, td { border: 1px solid #dee2e6; padding: 8px; text-align: left; vertical-align: middle; }
-    th { background-color: #f1f3f5; color: #495057; }
-    .total-box { text-align: right; font-size: 16px; font-weight: bold; margin-top: 15px; }
-    .tag { display: inline-block; background: #e2e3e5; padding: 4px 8px; border-radius: 12px; font-size: 12px; margin: 3px; }
-    .mode-toggle { text-align: right; margin-bottom: 10px; font-weight: bold; }
-    .qty-input { width: 70px; text-align: center; padding: 4px; font-weight: bold; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; margin: 10px; background-color: #f4f6f9; color: #333; }
+    .container { max-width: 1100px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    
+    /* Sheet 2 Layout Styling */
+    .top-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #222; padding-bottom: 10px; margin-bottom: 15px; }
+    .company-title { font-size: 24px; font-weight: bold; color: #1a365d; margin: 0; }
+    .logo-box { font-weight: bold; font-size: 18px; border: 2px dashed #007bff; padding: 5px 15px; border-radius: 4px; color: #007bff; }
+    
+    .site-control-bar { display: flex; flex-wrap: wrap; gap: 15px; background: #e9ecef; padding: 12px; border-radius: 6px; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .control-group { display: flex; align-items: center; gap: 8px; }
+    .control-group label { font-weight: bold; font-size: 14px; }
+    
+    select, input, button { padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+    .btn-primary { background-color: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
+    .btn-success { background-color: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; }
+    .btn-pdf { background-color: #dc3545; color: white; border: none; font-weight: bold; font-size: 15px; padding: 10px 20px; cursor: pointer; border-radius: 4px; }
+    
+    .section-title { background: #343a40; color: white; text-align: center; padding: 8px; font-size: 16px; font-weight: bold; margin-top: 15px; border-radius: 4px; }
+    
+    /* Table Styling matching Sheet 2 */
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+    th, td { border: 1px solid #000; padding: 6px 8px; text-align: center; vertical-align: middle; }
+    th { background-color: #d9e2ec; color: #102a43; font-weight: bold; }
+    tr:nth-child(even) { background-color: #f8f9fa; }
+    
+    .text-left { text-align: left; }
+    .qty-input { width: 60px; text-align: center; font-weight: bold; padding: 4px; border: 1px solid #007bff; background: #eef6ff; }
+    
+    /* Footer Section */
+    .footer-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 2px solid #222; }
+    .whatsapp-box { font-size: 13px; font-weight: bold; background: #e6f4ea; padding: 10px 15px; border-radius: 6px; border: 1px solid #28a745; }
+    
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white; margin: 0; }
+      .container { box-shadow: none; border: none; padding: 0; }
+    }
   </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="printableArea">
 
-  <div class="mode-toggle">
-    <span id="roleLabel">Role: Admin Mode</span> 
-    <button class="btn-secondary" style="padding:4px 8px; font-size:12px;" onclick="toggleRole()">Switch Mode</button>
+  <!-- Header Block (As per Sheet 2) -->
+  <div class="top-header">
+    <div>
+      <h1 class="company-title" id="displayCompany">Design Home Interior</h1>
+      <small style="color: #666;">Auto-Saves Date & Time On Material Request</small>
+    </div>
+    <div class="logo-box">LOGO</div>
   </div>
 
-  <div class="header">
-    <div style="display:flex; align-items:center; gap:15px;">
-      <img id="displayLogo" class="logo-img" src="" alt="" style="display:none;">
-      <h2 id="displayCompanyName" style="margin:0;">Design Home Interior</h2>
+  <!-- Active Site & Site Manager (No-Print Controls) -->
+  <div class="site-control-bar no-print">
+    <div class="control-group">
+      <label>Select Active Site:</label>
+      <select id="siteSelect" onchange="switchSite()"></select>
     </div>
-    <div style="text-align: right;">
-      <label>Site: <b id="displaySiteName" style="color: #007bff;">Default Site</b></label>
+
+    <div class="control-group">
+      <input type="text" id="newSiteInput" placeholder="Enter New Site Name">
+      <button class="btn-primary" onclick="addNewSite()">+ Add New Site</button>
     </div>
   </div>
 
-  <!-- Admin Panel -->
-  <div class="card admin-card" id="adminPanel">
-    <h3>⚙️ Admin Control Panel</h3>
-    <div class="flex-row form-group">
-      <div class="flex-1"><label>Company Name</label><input type="text" id="cfgCompany" value="Design Home Interior"></div>
-      <div class="flex-1"><label>Logo Image URL</label><input type="text" id="cfgLogo" value="logo.png"></div>
-      <button class="btn-primary" onclick="saveCompanyDetails()">Save Company Details</button>
-    </div>
-    
-    <hr style="margin: 15px 0; border:0; border-top:1px solid #ccc;">
-    
-    <div class="flex-row form-group">
-      <div class="flex-1">
-        <label>Select Active Site</label>
-        <select id="siteSelect" onchange="changeSite()"></select>
-      </div>
-      <div class="flex-1">
-        <label>📅 Filter Material History By Date</label>
-        <input type="date" id="historyDateFilter" onchange="renderTable()">
-      </div>
-      <button class="btn-secondary" onclick="clearDateFilter()">All</button>
-    </div>
-    
-    <div class="flex-row form-group">
-      <div class="flex-1">
-        <input type="text" id="newSiteName" placeholder="e.g. Kesar Site">
-      </div>
-      <button class="btn-primary" onclick="addSite()">+ Add Site</button>
-    </div>
-
-    <hr style="margin: 15px 0; border:0; border-top:1px solid #ccc;">
-
-    <h4>➕ Add Custom Master Material</h4>
-    <div class="flex-row form-group">
-      <div class="flex-1"><input type="text" id="masterName" placeholder="Material Name & Size"></div>
-      <div class="flex-1"><input type="number" id="masterRate" placeholder="Fixed Rate (₹)"></div>
-      <div class="flex-1"><input type="text" id="masterPhoto" placeholder="Default Photo Link"></div>
-      <button class="btn-primary" onclick="addMasterItem()">+ Add Master Item</button>
-    </div>
-
-    <h4>Saved Master Materials (Preset List):</h4>
-    <div id="masterTagsList"></div>
+  <!-- Active Site Banner -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+    <h3 style="margin: 0;">Site Name: <span id="currentSiteTitle" style="color: #007bff;">Default Site</span></h3>
+    <span id="dateTimeStamp" style="font-size: 12px; color: #555;"></span>
   </div>
 
-  <!-- Worker/Add Item Form -->
-  <div class="card">
-    <h3 style="margin-top:0;">⚡ Add Material to Site List (Auto-Saves Date & Time)</h3>
-    <div class="flex-row form-group">
-      <div class="flex-1">
-        <label>Select Material</label>
-        <select id="itemSelect" onchange="onMaterialSelect()">
-          <option value="">-- Select Pre-fixed Item --</option>
-        </select>
-      </div>
-      <div style="width: 150px;">
-        <label>Sheets / Quantity*</label>
-        <input type="number" id="itemQty" placeholder="e.g. 10" min="0.1" step="any">
-      </div>
-      <div class="flex-1">
-        <label>Photo Link (Optional)</label>
-        <input type="text" id="itemPhoto" placeholder="Paste Photo Link">
-      </div>
+  <div class="section-title">ADD MATERIAL LIST (SITE REQUISITION)</div>
+
+  <!-- Material List Table (Exact Sheet 2 Format) -->
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 50px;">SR. NO</th>
+        <th>MATERIAL NAME</th>
+        <th>SIZE / KG / NOS / PAIR / box / mtr</th>
+        <th style="width: 80px;">QTY</th>
+        <th style="width: 100px;">RATE</th>
+        <th style="width: 80px;">CODE</th>
+        <th style="width: 70px;">PHOTOS</th>
+      </tr>
+    </thead>
+    <tbody id="materialTableBody">
+      <!-- 32 Items loaded via JavaScript -->
+    </tbody>
+  </table>
+
+  <!-- Footer Block (Sheet 2 Admin Contact & Download PDF) -->
+  <div class="footer-bar">
+    <div class="whatsapp-box">
+      <div style="color: #155724; font-size: 14px; margin-bottom: 4px;">📲 ADMIN WHATSAPP</div>
+      <div>9799433172 DOULAT</div>
+      <div>7620520720 NIKHIL</div>
     </div>
-    <button class="btn-success" onclick="addSiteItem()">+ Add to List</button>
-  </div>
 
-  <!-- PDF / Table Output Section -->
-  <div class="card" id="pdfSection">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h3>📋 Site List: <span id="tableSiteTitle">Default Site</span></h3>
-      <button class="btn-danger" onclick="downloadPDF()">📄 Download PDF</button>
-    </div>
-
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Date & Time</th>
-          <th>Photo</th>
-          <th>Item Description</th>
-          <th style="width: 90px;">Qty (Editable)</th>
-          <th>Total Sqft</th>
-          <th>Rate (₹)</th>
-          <th>Amount (₹)</th>
-          <th class="no-print">Action</th>
-        </tr>
-      </thead>
-      <tbody id="siteTableBody"></tbody>
-    </table>
-
-    <div class="total-box">
-      Total Amount: ₹<span id="grandTotal">0.00</span>
+    <div class="no-print">
+      <button class="btn-pdf" onclick="generatePDF()">📄 DOWNLOAD PDF</button>
     </div>
   </div>
 
 </div>
 
 <script>
-  // 32 Default Pre-configured Materials List
-  const defaultMasterList = [
-    { name: "18mm Plywood 8*4/7*4", rate: 60, sqft: 32 },
-    { name: "12mm Plywood 8*4/7*4", rate: 45, sqft: 28 },
-    { name: "08mm Plywood 8*4/7*4", rate: 40, sqft: 28 },
-    { name: "06mm Plywood 8*4/7*4", rate: 30, sqft: 28 },
-    { name: "18mm HDHMR Sheet 8*4", rate: 60, sqft: 32 },
-    { name: "12mm HDHMR Sheet 8*4", rate: 45, sqft: 32 },
-    { name: "08mm HDHMR Sheet 8*4", rate: 32, sqft: 32 },
-    { name: "06mm HDHMR Sheet 8*4", rate: 28, sqft: 32 },
-    { name: "04mm HDHMR Sheet 8*4", rate: 25, sqft: 32 },
-    { name: "0.8mm Internal Laminate White 8*4", rate: 500, unit: "Sheet" },
-    { name: "0.8mm Internal Laminate Fabric 8*4", rate: 550, unit: "Sheet" },
-    { name: "0.8mm Internal Laminate other 8*4", rate: 500, unit: "Sheet" },
-    { name: "Fevicol (KG)", rate: 220, unit: "KG" },
-    { name: "Abro tape Roll (Nos)", rate: 120, unit: "Nos" },
-    { name: "Nails 19 *3/4 (KG)", rate: 90, unit: "KG" },
-    { name: "Nails 17 *3/4 (KG)", rate: 90, unit: "KG" },
-    { name: "Nails 17 *1 (KG)", rate: 90, unit: "KG" },
-    { name: "Nails 17 *1.1/4 (KG)", rate: 90, unit: "KG" },
-    { name: "Nails 14 *1.3/4 (KG)", rate: 90, unit: "KG" },
-    { name: "Screws 10*100 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Screws 10*75 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Screws 8*75 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Screws 8*60 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Screws 8*38 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Screws 8*32 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Screws 6*32 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Screws 6*19 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Screws 6*13 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Shelf thread Screws 6*32 (Box=100)", rate: 400, unit: "Box" },
-    { name: "Shelf thread Screws 6*19 (Box=100)", rate: 400, unit: "Box" },
-    { name: "6mm Rawal plug (Box=100)", rate: 400, unit: "Box" },
-    { name: "Carcass Edge Banding 0.8mm (MTR)", rate: 25, unit: "MTR" }
+  // Exact 32 Items Catalog from Sheet 2
+  const masterCatalog = [
+    { id: 1, name: "18mm Plywood", unit: "8*4/7*4", rate: "60/-sqft", code: "", photo: "" },
+    { id: 2, name: "12mm Plywood", unit: "8*4/7*4", rate: "45/-sqft", code: "", photo: "" },
+    { id: 3, name: "08mm Plywood", unit: "8*4/7*4", rate: "40/-sqft", code: "", photo: "" },
+    { id: 4, name: "06mm Plywood", unit: "8*4/7*4", rate: "30/-sqft", code: "", photo: "" },
+    { id: 5, name: "18mm HDHMR Sheet", unit: "8*4", rate: "60/-sqft", code: "", photo: "" },
+    { id: 6, name: "12mm HDHMR Sheet", unit: "8*4", rate: "45/-sqft", code: "", photo: "" },
+    { id: 7, name: "08mm HDHMR Sheet", unit: "8*4", rate: "32/-sqft", code: "", photo: "" },
+    { id: 8, name: "06mm HDHMR Sheet", unit: "8*4", rate: "28/-sqft", code: "", photo: "" },
+    { id: 9, name: "04mm HDHMR Sheet", unit: "8*4", rate: "25/-sqft", code: "", photo: "" },
+    { id: 10, name: "0.8mmInternal Laminate White", unit: "8*4", rate: "500/-per Sheet", code: "", photo: "" },
+    { id: 11, name: "0.8mmInternal Laminate Fabric", unit: "8*4", rate: "550/-per Sheet", code: "", photo: "" },
+    { id: 12, name: "0.8mmInternal Laminate other", unit: "8*4", rate: "500/-per Sheet", code: "", photo: "" },
+    { id: 13, name: "Fevicol", unit: "KG", rate: "220/ per kg", code: "", photo: "" },
+    { id: 14, name: "Abro tape Roll", unit: "Nos", rate: "120/- nos", code: "", photo: "" },
+    { id: 15, name: "Nails 19 *3/4", unit: "kg", rate: "90/-per KG", code: "", photo: "" },
+    { id: 16, name: "Nails 17 *3/4", unit: "kg", rate: "90/-per KG", code: "", photo: "" },
+    { id: 17, name: "Nails 17 *1", unit: "kg", rate: "90/-per KG", code: "", photo: "" },
+    { id: 18, name: "Nails 17 *1.1/4", unit: "kg", rate: "90/-per KG", code: "", photo: "" },
+    { id: 19, name: "Nails 14 *1.3/4", unit: "kg", rate: "90/-per KG", code: "", photo: "" },
+    { id: 20, name: "Scrows 10*100 star", unit: "1 Box =100", rate: "400/- per box", code: "", photo: "" },
+    { id: 21, name: "Scrows 10*75 star", unit: "1 Box =100", rate: "400/- per box", code: "", photo: "" },
+    { id: 22, name: "Scrows 8*75 star", unit: "1 Box =100", rate: "400/- per box", code: "", photo: "" },
+    { id: 23, name: "Scrows 8*60 star", unit: "1 Box =100", rate: "400/- per box", code: "", photo: "" },
+    { id: 24, name: "Scrows 8*38 star", unit: "1 Box =100", rate: "400/- per box", code: "", photo: "" },
+    { id: 25, name: "Scrows 8*32 star", unit: "1 Box =100", rate: "400/- per box", code: "", photo: "" },
+    { id: 26, name: "Scrows 6*32 star", unit: "1 Box =100", rate: "400/- per box", code: "", photo: "" },
+    { id: 27, name: "Scrows 6*19 star", unit: "1 Box =100", rate: "400/- per box", code: "", photo: "" },
+    { id: 28, name: "Scrows 6*13 star", unit: "1 Box =100", rate: "400/- per box", code: "", photo: "" },
+    { id: 29, name: "Shelf thared Scrows 6*32", unit: "1 Box =100", rate: "400/- per box", code: "", photo: "" },
+    { id: 30, name: "Shelf thared Scrows 6*19", unit: "1 Box =100", rate: "400/- per box", code: "", photo: "" },
+    { id: 31, name: "6mm Rawal pagal", unit: "1 Box =100", rate: "400/- per box", code: "", photo: "" },
+    { id: 32, name: "Carcass Edge Banding 0.8mm", unit: "MTR", rate: "25/- Per Mtr", code: "", photo: "" }
   ];
 
-  let appState = JSON.parse(localStorage.getItem('appState')) || {
-    role: 'Admin',
-    company: 'Design Home Interior',
-    logo: 'logo.png',
-    currentSite: 'Default Site',
-    sites: ['Default Site'],
-    masterCatalog: defaultMasterList,
-    siteRecords: {} 
+  let appData = JSON.parse(localStorage.getItem('sheet2AppData')) || {
+    sites: ['Default Site', 'Kesar Site'],
+    activeSite: 'Default Site',
+    quantities: {} // Stores quantities per site
   };
 
-  if(!appState.masterCatalog || appState.masterCatalog.length === 0) {
-    appState.masterCatalog = defaultMasterList;
-  }
-
-  function saveState() {
-    localStorage.setItem('appState', JSON.stringify(appState));
-  }
-
   function init() {
-    document.getElementById('cfgCompany').value = appState.company;
-    document.getElementById('cfgLogo').value = appState.logo;
-    updateCompanyUI();
-    renderSiteOptions();
-    renderMasterDropdown();
-    renderMasterTags();
+    renderSiteDropdown();
     renderTable();
-    updateRoleUI();
+    updateDateTime();
   }
 
-  function updateCompanyUI() {
-    document.getElementById('displayCompanyName').innerText = appState.company;
-    const logoEl = document.getElementById('displayLogo');
-    if(appState.logo) {
-      logoEl.src = appState.logo;
-      logoEl.style.display = 'block';
-    } else {
-      logoEl.style.display = 'none';
-    }
+  function updateDateTime() {
+    const now = new Date();
+    document.getElementById('dateTimeStamp').innerText = "Date: " + now.toLocaleDateString('en-GB') + " | " + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   }
 
-  function saveCompanyDetails() {
-    appState.company = document.getElementById('cfgCompany').value;
-    appState.logo = document.getElementById('cfgLogo').value;
-    saveState();
-    updateCompanyUI();
-    alert('Company Details Saved!');
-  }
-
-  function toggleRole() {
-    appState.role = (appState.role === 'Admin') ? 'Worker' : 'Admin';
-    saveState();
-    updateRoleUI();
-  }
-
-  function updateRoleUI() {
-    document.getElementById('roleLabel').innerText = `Role: ${appState.role} Mode`;
-    document.getElementById('adminPanel').style.display = (appState.role === 'Admin') ? 'block' : 'none';
-  }
-
-  function renderSiteOptions() {
+  function renderSiteDropdown() {
     const select = document.getElementById('siteSelect');
     select.innerHTML = '';
-    appState.sites.forEach(site => {
+    appData.sites.forEach(site => {
       const opt = document.createElement('option');
       opt.value = site;
       opt.innerText = site;
-      if(site === appState.currentSite) opt.selected = true;
+      if(site === appData.activeSite) opt.selected = true;
       select.appendChild(opt);
     });
-    document.getElementById('displaySiteName').innerText = appState.currentSite;
-    document.getElementById('tableSiteTitle').innerText = appState.currentSite;
+    document.getElementById('currentSiteTitle').innerText = appData.activeSite;
   }
 
-  function addSite() {
-    const name = document.getElementById('newSiteName').value.trim();
-    if(name && !appState.sites.includes(name)) {
-      appState.sites.push(name);
-      appState.currentSite = name;
-      saveState();
-      renderSiteOptions();
+  function addNewSite() {
+    const siteName = document.getElementById('newSiteInput').value.trim();
+    if (siteName && !appData.sites.includes(siteName)) {
+      appData.sites.push(siteName);
+      appData.activeSite = siteName;
+      saveData();
+      renderSiteDropdown();
       renderTable();
-      document.getElementById('newSiteName').value = '';
+      document.getElementById('newSiteInput').value = '';
     }
   }
 
-  function changeSite() {
-    appState.currentSite = document.getElementById('siteSelect').value;
-    saveState();
-    document.getElementById('displaySiteName').innerText = appState.currentSite;
-    document.getElementById('tableSiteTitle').innerText = appState.currentSite;
+  function switchSite() {
+    appData.activeSite = document.getElementById('siteSelect').value;
+    saveData();
+    document.getElementById('currentSiteTitle').innerText = appData.activeSite;
     renderTable();
   }
 
-  function renderMasterDropdown() {
-    const select = document.getElementById('itemSelect');
-    select.innerHTML = '<option value="">-- Select Pre-fixed Item --</option>';
-    appState.masterCatalog.forEach((item, index) => {
-      const opt = document.createElement('option');
-      opt.value = index;
-      opt.innerText = `${item.name} (₹${item.rate})`;
-      select.appendChild(opt);
-    });
+  function saveData() {
+    localStorage.setItem('sheet2AppData', JSON.stringify(appData));
   }
 
-  function renderMasterTags() {
-    const container = document.getElementById('masterTagsList');
-    container.innerHTML = '';
-    appState.masterCatalog.forEach((item, index) => {
-      container.innerHTML += `<span class="tag">
-        <b>${item.name}</b> (₹${item.rate}) 
-        <a href="#" onclick="deleteMasterItem(${index})" style="color:red; text-decoration:none;">✕</a>
-      </span>`;
-    });
-  }
-
-  function addMasterItem() {
-    const name = document.getElementById('masterName').value.trim();
-    const rate = parseFloat(document.getElementById('masterRate').value);
-    const photo = document.getElementById('masterPhoto').value.trim();
-
-    if(name && !isNaN(rate)) {
-      appState.masterCatalog.push({ name, rate, photo, sqft: name.toLowerCase().includes('plywood') || name.toLowerCase().includes('hdhmr') ? 32 : null });
-      saveState();
-      renderMasterDropdown();
-      renderMasterTags();
-      document.getElementById('masterName').value = '';
-      document.getElementById('masterRate').value = '';
-      document.getElementById('masterPhoto').value = '';
+  function handleQtyChange(itemId, value) {
+    if (!appData.quantities[appData.activeSite]) {
+      appData.quantities[appData.activeSite] = {};
     }
-  }
-
-  function deleteMasterItem(index) {
-    appState.masterCatalog.splice(index, 1);
-    saveState();
-    renderMasterDropdown();
-    renderMasterTags();
-  }
-
-  function onMaterialSelect() {
-    const idx = document.getElementById('itemSelect').value;
-    if(idx !== "") {
-      const item = appState.masterCatalog[idx];
-      if(item.photo) document.getElementById('itemPhoto').value = item.photo;
-    }
-  }
-
-  function addSiteItem() {
-    const idx = document.getElementById('itemSelect').value;
-    const qty = parseFloat(document.getElementById('itemQty').value);
-    const customPhoto = document.getElementById('itemPhoto').value.trim();
-
-    if(idx === "" || isNaN(qty) || qty <= 0) {
-      alert("Kripya Material Select Karein aur Sahi Quantity Dalein!");
-      return;
-    }
-
-    const master = appState.masterCatalog[idx];
-    const now = new Date();
-    const timestamp = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    const dateIso = now.toISOString().split('T')[0];
-
-    const record = {
-      id: Date.now(),
-      dateStr: timestamp,
-      dateIso: dateIso,
-      name: master.name,
-      qty: qty,
-      rate: master.rate,
-      sqftFactor: master.sqft || null,
-      photo: customPhoto || master.photo || ''
-    };
-
-    if(!appState.siteRecords[appState.currentSite]) {
-      appState.siteRecords[appState.currentSite] = [];
-    }
-    appState.siteRecords[appState.currentSite].push(record);
-
-    saveState();
-    renderTable();
-
-    document.getElementById('itemSelect').value = '';
-    document.getElementById('itemQty').value = '';
-    document.getElementById('itemPhoto').value = '';
-  }
-
-  // Update Qty directly from Site List table
-  function updateTableQty(id, newQty) {
-    const records = appState.siteRecords[appState.currentSite] || [];
-    const item = records.find(r => r.id === id);
-    if(item && newQty > 0) {
-      item.qty = parseFloat(newQty);
-      saveState();
-      renderTable();
-    }
-  }
-
-  function deleteSiteItem(id) {
-    appState.siteRecords[appState.currentSite] = appState.siteRecords[appState.currentSite].filter(r => r.id !== id);
-    saveState();
-    renderTable();
-  }
-
-  function clearDateFilter() {
-    document.getElementById('historyDateFilter').value = '';
-    renderTable();
+    appData.quantities[appData.activeSite][itemId] = value;
+    saveData();
   }
 
   function renderTable() {
-    const tbody = document.getElementById('siteTableBody');
+    const tbody = document.getElementById('materialTableBody');
     tbody.innerHTML = '';
-    
-    let records = appState.siteRecords[appState.currentSite] || [];
-    const filterDate = document.getElementById('historyDateFilter').value;
 
-    if(filterDate) {
-      records = records.filter(r => r.dateIso === filterDate);
-    }
+    const currentSiteQtys = appData.quantities[appData.activeSite] || {};
 
-    let grandTotal = 0;
-
-    records.forEach((rec, i) => {
-      let totalSqft = rec.sqftFactor ? (rec.qty * rec.sqftFactor) : '-';
-      let amount = rec.sqftFactor ? (totalSqft * rec.rate) : (rec.qty * rec.rate);
-      grandTotal += amount;
-
-      const photoHtml = rec.photo ? `<a href="${rec.photo}" target="_blank"><img src="${rec.photo}" style="width:35px;height:35px;object-fit:cover;border-radius:4px;"></a>` : 'No Photo';
-
+    masterCatalog.forEach((item) => {
+      const qtyVal = currentSiteQtys[item.id] || '';
+      
       tbody.innerHTML += `
         <tr>
-          <td>${i + 1}</td>
-          <td>${rec.dateStr}</td>
-          <td>${photoHtml}</td>
-          <td><b>${rec.name}</b></td>
+          <td>${item.id}</td>
+          <td class="text-left"><b>${item.name}</b></td>
+          <td>${item.unit}</td>
           <td>
-            <input type="number" class="qty-input" value="${rec.qty}" min="0.1" step="any" onchange="updateTableQty(${rec.id}, this.value)">
+            <input type="number" class="qty-input" value="${qtyVal}" placeholder="0" min="0" onchange="handleQtyChange(${item.id}, this.value)">
           </td>
-          <td>${totalSqft !== '-' ? totalSqft.toFixed(2) + ' sqft' : '-'}</td>
-          <td>₹${rec.rate.toFixed(2)}</td>
-          <td><b>₹${amount.toFixed(2)}</b></td>
-          <td class="no-print">
-            <button class="btn-danger" style="padding:2px 6px; font-size:11px;" onclick="deleteSiteItem(${rec.id})">Delete</button>
-          </td>
+          <td>${item.rate}</td>
+          <td>${item.code || '-'}</td>
+          <td><span style="color:#007bff; cursor:pointer;">📷 Photos</span></td>
         </tr>
       `;
     });
-
-    document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
   }
 
-  function downloadPDF() {
-    const element = document.getElementById('pdfSection');
+  function generatePDF() {
+    const element = document.getElementById('printableArea');
     const opt = {
-      margin:       0.5,
-      filename:     `${appState.currentSite}_Material_List.pdf`,
+      margin:       0.3,
+      filename:     `${appData.activeSite}_Material_List.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
       html2canvas:  { scale: 2 },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
-    html2canvas: { ignoreElements: (element) => element.classList.contains('no-print') }
+    
+    // Temporarily hide no-print elements
     html2pdf().set(opt).from(element).save();
   }
 
