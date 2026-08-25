@@ -3,128 +3,128 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Material Management System with Date History</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <title>Site Material Management App</title>
   <style>
     * { box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 12px; background-color: #f4f6f9; color: #333; }
-    .container { max-width: 1000px; margin: auto; }
-    .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #ddd; padding: 12px; margin-bottom: 15px; background: #fff; border-radius: 8px; flex-wrap: wrap; gap: 10px; }
-    .logo-img { max-height: 45px; max-width: 140px; object-fit: contain; }
-    .card { background: #fff; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e1e4e8; }
-    .admin-card { border-left: 5px solid #007bff; background: #f8f9fa; }
-    .form-group { margin-bottom: 10px; }
-    label { font-weight: bold; display: block; margin-bottom: 4px; font-size: 13px; color: #555; }
-    input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-    button { padding: 9px 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-    .btn-primary { background: #007bff; color: #fff; }
-    .btn-success { background: #28a745; color: #fff; width: 100%; font-size: 15px; padding: 10px; }
-    .btn-danger { background: #dc3545; color: #fff; }
-    .btn-secondary { background: #6c757d; color: #fff; }
-    .flex-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
-    .flex-1 { flex: 1; min-width: 140px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 10px; background-color: #f4f6f9; color: #333; }
+    .container { max-width: 900px; margin: auto; }
     
-    /* Responsive Table Wrapper */
-    .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 15px; }
+    /* Dynamic Header */
+    .header { background: #fff; padding: 12px 15px; border-radius: 8px; border-bottom: 3px solid #007bff; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .company-name { font-size: 18px; font-weight: bold; color: #1a365d; margin: 0; }
+    .site-badge { background: #007bff; color: white; padding: 4px 10px; border-radius: 20px; font-size: 13px; font-weight: bold; }
+    
+    /* App Mode Toggle Bar */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 4px; }
+    .role-btn { background: #6c757d; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+
+    /* Card Layouts */
+    .card { background: #fff; border-radius: 8px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e1e4e8; }
+    .card-title { font-size: 15px; font-weight: bold; margin-top: 0; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; color: #2b6cb0; }
+    
+    /* Worker Input Section - High Prominence */
+    .worker-card { border: 2px solid #28a745; background: #f8fff9; }
+    .form-group { margin-bottom: 10px; }
+    label { font-weight: bold; font-size: 13px; display: block; margin-bottom: 4px; color: #4a5568; }
+    select, input { width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 16px; background: #fff; }
+    select:focus, input:focus { border-color: #007bff; outline: none; }
+    
+    .btn-add { background: #28a745; color: white; border: none; font-size: 18px; font-weight: bold; padding: 14px; width: 100%; border-radius: 6px; cursor: pointer; margin-top: 5px; }
+    .btn-pdf { background: #dc3545; color: white; border: none; font-size: 14px; font-weight: bold; padding: 8px 14px; border-radius: 6px; cursor: pointer; }
+
+    /* Table Responsiveness */
+    .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; }
     table { width: 100%; min-width: 650px; border-collapse: collapse; font-size: 13px; background: #fff; }
-    th, td { border: 1px solid #dee2e6; padding: 8px 6px; text-align: left; vertical-align: middle; }
-    th { background-color: #f1f3f5; color: #495057; }
-    .total-box { text-align: right; font-size: 16px; font-weight: bold; margin-top: 15px; }
-    .tag { display: inline-block; background: #e2e3e5; padding: 4px 8px; border-radius: 12px; font-size: 12px; margin: 3px; }
-    .mode-toggle { text-align: right; margin-bottom: 8px; font-weight: bold; }
-    .qty-input { width: 65px; text-align: center; padding: 6px; font-weight: bold; border: 2px solid #007bff; border-radius: 4px; font-size: 15px; background: #eef6ff; }
+    th, td { border: 1px solid #cbd5e0; padding: 8px 6px; text-align: center; vertical-align: middle; }
+    th { background: #edf2f7; color: #2d3748; font-weight: bold; }
+    .text-left { text-align: left; }
+    .qty-edit { width: 60px; text-align: center; padding: 6px; font-weight: bold; font-size: 15px; border: 2px solid #007bff; border-radius: 4px; background: #ebf8ff; }
+    
+    /* Payment Summary Box */
+    .summary-box { background: #ebf8ff; border: 1px solid #bee3f8; border-radius: 6px; padding: 12px; margin-top: 12px; text-align: right; }
+    .total-amount { font-size: 20px; font-weight: bold; color: #2b6cb0; }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white; padding: 0; }
+      .container { max-width: 100%; }
+      .table-responsive { overflow-x: visible; }
+      table { min-width: 100%; }
+    }
   </style>
 </head>
 <body>
 
 <div class="container">
 
-  <div class="mode-toggle">
-    <span id="roleLabel">Role: Admin Mode</span> 
-    <button class="btn-secondary" style="padding:4px 8px; font-size:12px;" onclick="toggleRole()">Switch Mode</button>
+  <div class="top-bar no-print">
+    <span id="roleLabel" style="font-size: 12px; font-weight: bold; color: #718096;">Mode: Worker View</span>
+    <button class="role-btn" onclick="toggleRole()">Switch Admin/Worker</button>
   </div>
 
   <div class="header">
-    <div style="display:flex; align-items:center; gap:10px;">
-      <img id="displayLogo" class="logo-img" src="" alt="" style="display:none;">
-      <h2 id="displayCompanyName" style="margin:0; font-size: 20px;">Design Home Interior</h2>
+    <div>
+      <h1 class="company-name" id="displayCompanyName">Design Home Interior</h1>
+      <small style="color: #718096; font-size: 11px;">Site Material Requisition App</small>
     </div>
-    <div style="text-align: right;">
-      <label>Site: <b id="displaySiteName" style="color: #007bff;">Default Site</b></label>
+    <div class="site-badge" id="displaySiteBadge">Default Site</div>
+  </div>
+
+  <!-- Admin Control Panel (Only visible in Admin Mode) -->
+  <div class="card no-print" id="adminPanel" style="display: none; background: #fffaf0; border-color: #dd6b20;">
+    <h3 style="margin-top:0; color: #c05621; font-size: 15px;">⚙️ Admin Controls</h3>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+      <div style="flex: 1; min-width: 140px;">
+        <label>Add New Site Name:</label>
+        <input type="text" id="newSiteInput" placeholder="e.g. Kesar Villa">
+      </div>
+      <button style="background: #dd6b20; color:white; border:none; padding:10px 15px; border-radius:6px; font-weight:bold; align-self:flex-end;" onclick="addNewSite()">+ Create Site</button>
     </div>
   </div>
 
-  <!-- Admin Control Panel -->
-  <div class="card admin-card" id="adminPanel">
-    <h3 style="margin-top:0;">⚙️ Admin Control Panel</h3>
-    <div class="flex-row form-group">
-      <div class="flex-1"><label>Company Name</label><input type="text" id="cfgCompany" value="Design Home Interior"></div>
-      <div class="flex-1"><label>Logo Image URL</label><input type="text" id="cfgLogo" value="logo.png"></div>
-      <button class="btn-primary" onclick="saveCompanyDetails()">Save Company Details</button>
+  <!-- Worker Add Material Section -->
+  <div class="card worker-card no-print">
+    <div class="card-title" style="color: #276749;">
+      <span>📌 Add Material To Site List</span>
     </div>
     
-    <hr style="margin: 15px 0; border:0; border-top:1px solid #ccc;">
-    
-    <div class="flex-row form-group">
-      <div class="flex-1">
-        <label>Select Active Site</label>
-        <select id="siteSelect" onchange="changeSite()"></select>
-      </div>
-      <div class="flex-1">
-        <label>📅 Filter History By Date</label>
-        <input type="date" id="historyDateFilter" onchange="renderTable()">
-      </div>
-      <button class="btn-secondary" onclick="clearDateFilter()">All</button>
-    </div>
-    
-    <div class="flex-row form-group">
-      <div class="flex-1">
-        <input type="text" id="newSiteName" placeholder="e.g. Kesar Site">
-      </div>
-      <button class="btn-primary" onclick="addSite()">+ Add Site</button>
+    <div class="form-group">
+      <label>1. Select Active Site (साइट चुनें):</label>
+      <select id="siteSelect" onchange="switchSite()"></select>
     </div>
 
-    <hr style="margin: 15px 0; border:0; border-top:1px solid #ccc;">
-
-    <h4 style="margin-bottom:8px;">➕ Add Custom Master Material</h4>
-    <div class="flex-row form-group">
-      <div class="flex-1"><input type="text" id="masterName" placeholder="Material Name & Size"></div>
-      <div class="flex-1"><input type="number" id="masterRate" placeholder="Fixed Rate (₹)"></div>
-      <div class="flex-1"><input type="text" id="masterPhoto" placeholder="Default Photo Link"></div>
-      <button class="btn-primary" onclick="addMasterItem()">+ Add Master Item</button>
+    <div class="form-group">
+      <label>2. Select Material Name (सामग्री चुनें):</label>
+      <select id="materialSelect">
+        <option value="">-- Choose Item from Master List --</option>
+      </select>
     </div>
 
-    <h4>Saved Master Materials (Preset List):</h4>
-    <div id="masterTagsList"></div>
+    <div style="display: flex; gap: 10px;">
+      <div class="form-group" style="flex: 1;">
+        <label>3. Quantity / Sheets (नंबर/मात्रा):</label>
+        <input type="number" id="materialQty" placeholder="e.g. 10" min="0.1" step="any">
+      </div>
+      <div class="form-group" style="flex: 1;">
+        <label>4. Photo Link (Optional):</label>
+        <input type="text" id="materialPhoto" placeholder="Paste Image Link">
+      </div>
+    </div>
+
+    <button class="btn-add" onclick="addItemToList()">+ ADD MATERIAL (सूची में जोड़ें)</button>
   </div>
 
-  <!-- Worker / Add Item Form -->
+  <!-- Material List Output & History Tracking -->
   <div class="card">
-    <h3 style="margin-top:0; font-size: 16px;">⚡ Add Material to Site List (Auto-Saves Date & Time)</h3>
-    <div class="flex-row form-group">
-      <div class="flex-1">
-        <label>Select Material</label>
-        <select id="itemSelect" onchange="onMaterialSelect()">
-          <option value="">-- Select Pre-fixed Item --</option>
-        </select>
-      </div>
-      <div style="width: 130px;">
-        <label>Sheets / Qty*</label>
-        <input type="number" id="itemQty" placeholder="e.g. 10" min="0.1" step="any">
-      </div>
-      <div class="flex-1">
-        <label>Photo Link (Optional)</label>
-        <input type="text" id="itemPhoto" placeholder="Paste Photo Link">
-      </div>
+    <div class="card-title">
+      <span>📋 Site Record & Payment Summary</span>
+      <button class="btn-pdf no-print" onclick="window.print()">📄 Print / Save PDF</button>
     </div>
-    <button class="btn-success" onclick="addSiteItem()">+ Add to List</button>
-  </div>
 
-  <!-- Table Output Section -->
-  <div class="card" id="pdfSection">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-      <h3 style="margin:0;">📋 Site List: <span id="tableSiteTitle">Default Site</span></h3>
-      <button class="btn-danger" onclick="downloadPDF()">📄 Download PDF</button>
+    <div class="no-print" style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px; background: #edf2f7; padding: 8px; border-radius: 6px;">
+      <label style="margin:0; min-width: 110px;">📅 Filter Date:</label>
+      <input type="date" id="dateFilter" onchange="renderTable()" style="padding:6px; font-size:13px;">
+      <button onclick="clearDateFilter()" style="padding:6px 12px; font-size:12px; background:#e2e8f0; border:1px solid #cbd5e0; border-radius:4px; cursor:pointer;">Show All</button>
     </div>
 
     <div class="table-responsive">
@@ -132,303 +132,229 @@
         <thead>
           <tr>
             <th style="width: 35px;">#</th>
-            <th style="min-width: 110px;">Date & Time</th>
-            <th style="width: 50px;">Photo</th>
-            <th style="min-width: 150px;">Item Description</th>
-            <th style="width: 85px;">Qty (Edit)</th>
-            <th style="min-width: 80px;">Total Sqft</th>
-            <th style="min-width: 75px;">Rate (₹)</th>
-            <th style="min-width: 90px;">Amount (₹)</th>
-            <th class="no-print" style="width: 60px;">Action</th>
+            <th style="min-width: 100px;">Date & Time</th>
+            <th style="min-width: 140px;" class="text-left">Material Name</th>
+            <th style="width: 70px;">Qty</th>
+            <th style="min-width: 80px;">Sqft / Unit</th>
+            <th style="min-width: 70px;">Rate (₹)</th>
+            <th style="min-width: 90px;">Total Amount</th>
+            <th style="width: 45px;">Pic</th>
+            <th class="no-print" style="width: 45px;">Del</th>
           </tr>
         </thead>
-        <tbody id="siteTableBody"></tbody>
+        <tbody id="tableBody"></tbody>
       </table>
     </div>
 
-    <div class="total-box">
-      Total Amount: ₹<span id="grandTotal">0.00</span>
+    <div class="summary-box">
+      <span style="font-size: 13px; color: #4a5568;">Total Payment Due for <b id="summarySiteTitle">Default Site</b>:</span><br>
+      <span class="total-amount">₹<span id="grandTotal">0.00</span></span>
     </div>
   </div>
 
 </div>
 
 <script>
-  const defaultMasterList = [
-    { name: "18mm Plywood 8*4/7*4", rate: 60, sqft: 32 },
-    { name: "12mm Plywood 8*4/7*4", rate: 45, sqft: 28 },
-    { name: "08mm Plywood 8*4/7*4", rate: 40, sqft: 28 },
-    { name: "06mm Plywood 8*4/7*4", rate: 30, sqft: 28 },
-    { name: "18mm HDHMR Sheet 8*4", rate: 60, sqft: 32 },
-    { name: "12mm HDHMR Sheet 8*4", rate: 45, sqft: 32 },
-    { name: "08mm HDHMR Sheet 8*4", rate: 32, sqft: 32 },
-    { name: "06mm HDHMR Sheet 8*4", rate: 28, sqft: 32 },
-    { name: "04mm HDHMR Sheet 8*4", rate: 25, sqft: 32 },
-    { name: "0.8mm Internal Laminate White 8*4", rate: 500, unit: "Sheet" },
-    { name: "0.8mm Internal Laminate Fabric 8*4", rate: 550, unit: "Sheet" },
-    { name: "0.8mm Internal Laminate other 8*4", rate: 500, unit: "Sheet" },
-    { name: "Fevicol (KG)", rate: 220, unit: "KG" },
-    { name: "Abro tape Roll (Nos)", rate: 120, unit: "Nos" },
-    { name: "Nails 19 *3/4 (KG)", rate: 90, unit: "KG" },
-    { name: "Nails 17 *3/4 (KG)", rate: 90, unit: "KG" },
-    { name: "Nails 17 *1 (KG)", rate: 90, unit: "KG" },
-    { name: "Nails 17 *1.1/4 (KG)", rate: 90, unit: "KG" },
-    { name: "Nails 14 *1.3/4 (KG)", rate: 90, unit: "KG" },
-    { name: "Screws 10*100 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Screws 10*75 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Screws 8*75 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Screws 8*60 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Screws 8*38 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Screws 8*32 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Screws 6*32 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Screws 6*19 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Screws 6*13 star (Box=100)", rate: 400, unit: "Box" },
-    { name: "Shelf thread Screws 6*32 (Box=100)", rate: 400, unit: "Box" },
-    { name: "Shelf thread Screws 6*19 (Box=100)", rate: 400, unit: "Box" },
-    { name: "6mm Rawal plug (Box=100)", rate: 400, unit: "Box" },
-    { name: "Carcass Edge Banding 0.8mm (MTR)", rate: 25, unit: "MTR" }
+  const masterCatalog = [
+    { id: 1, name: "18mm Plywood (8*4/7*4)", rate: 60, sqftFactor: 32 },
+    { id: 2, name: "12mm Plywood (8*4/7*4)", rate: 45, sqftFactor: 28 },
+    { id: 3, name: "08mm Plywood (8*4/7*4)", rate: 40, sqftFactor: 28 },
+    { id: 4, name: "06mm Plywood (8*4/7*4)", rate: 30, sqftFactor: 28 },
+    { id: 5, name: "18mm HDHMR Sheet (8*4)", rate: 60, sqftFactor: 32 },
+    { id: 6, name: "12mm HDHMR Sheet (8*4)", rate: 45, sqftFactor: 32 },
+    { id: 7, name: "08mm HDHMR Sheet (8*4)", rate: 32, sqftFactor: 32 },
+    { id: 8, name: "06mm HDHMR Sheet (8*4)", rate: 28, sqftFactor: 32 },
+    { id: 9, name: "04mm HDHMR Sheet (8*4)", rate: 25, sqftFactor: 32 },
+    { id: 10, name: "0.8mm Internal Laminate White", rate: 500, unit: "Sheet" },
+    { id: 11, name: "0.8mm Internal Laminate Fabric", rate: 550, unit: "Sheet" },
+    { id: 12, name: "0.8mm Internal Laminate Other", rate: 500, unit: "Sheet" },
+    { id: 13, name: "Fevicol (KG)", rate: 220, unit: "KG" },
+    { id: 14, name: "Abro tape Roll (Nos)", rate: 120, unit: "Nos" },
+    { id: 15, name: "Nails 19 *3/4 (KG)", rate: 90, unit: "KG" },
+    { id: 16, name: "Nails 17 *3/4 (KG)", rate: 90, unit: "KG" },
+    { id: 17, name: "Nails 17 *1 (KG)", rate: 90, unit: "KG" },
+    { id: 18, name: "Nails 17 *1.1/4 (KG)", rate: 90, unit: "KG" },
+    { id: 19, name: "Nails 14 *1.3/4 (KG)", rate: 90, unit: "KG" },
+    { id: 20, name: "Screws 10*100 star (Box)", rate: 400, unit: "Box" },
+    { id: 21, name: "Screws 10*75 star (Box)", rate: 400, unit: "Box" },
+    { id: 22, name: "Screws 8*75 star (Box)", rate: 400, unit: "Box" },
+    { id: 23, name: "Screws 8*60 star (Box)", rate: 400, unit: "Box" },
+    { id: 24, name: "Screws 8*38 star (Box)", rate: 400, unit: "Box" },
+    { id: 25, name: "Screws 8*32 star (Box)", rate: 400, unit: "Box" },
+    { id: 26, name: "Screws 6*32 star (Box)", rate: 400, unit: "Box" },
+    { id: 27, name: "Screws 6*19 star (Box)", rate: 400, unit: "Box" },
+    { id: 28, name: "Screws 6*13 star (Box)", rate: 400, unit: "Box" },
+    { id: 29, name: "Shelf thread Screws 6*32", rate: 400, unit: "Box" },
+    { id: 30, name: "Shelf thread Screws 6*19", rate: 400, unit: "Box" },
+    { id: 31, name: "6mm Rawal plug (Box)", rate: 400, unit: "Box" },
+    { id: 32, name: "Carcass Edge Banding 0.8mm", rate: 25, unit: "MTR" }
   ];
 
-  let appState = JSON.parse(localStorage.getItem('appState')) || {
-    role: 'Admin',
-    company: 'Design Home Interior',
-    logo: 'logo.png',
-    currentSite: 'Default Site',
-    sites: ['Default Site'],
-    masterCatalog: defaultMasterList,
-    siteRecords: {} 
+  let appState = JSON.parse(localStorage.getItem('siteMaterialData')) || {
+    role: 'Worker',
+    activeSite: 'Default Site',
+    sites: ['Default Site', 'Kesar Site'],
+    records: {} 
   };
 
-  if(!appState.masterCatalog || appState.masterCatalog.length === 0) {
-    appState.masterCatalog = defaultMasterList;
-  }
-
-  function saveState() {
-    localStorage.setItem('appState', JSON.stringify(appState));
-  }
-
   function init() {
-    document.getElementById('cfgCompany').value = appState.company;
-    document.getElementById('cfgLogo').value = appState.logo;
-    updateCompanyUI();
-    renderSiteOptions();
-    renderMasterDropdown();
-    renderMasterTags();
+    renderSiteDropdown();
+    renderMaterialDropdown();
     renderTable();
     updateRoleUI();
   }
 
-  function updateCompanyUI() {
-    document.getElementById('displayCompanyName').innerText = appState.company;
-    const logoEl = document.getElementById('displayLogo');
-    if(appState.logo) {
-      logoEl.src = appState.logo;
-      logoEl.style.display = 'block';
-    } else {
-      logoEl.style.display = 'none';
-    }
-  }
-
-  function saveCompanyDetails() {
-    appState.company = document.getElementById('cfgCompany').value;
-    appState.logo = document.getElementById('cfgLogo').value;
-    saveState();
-    updateCompanyUI();
-    alert('Company Details Saved!');
-  }
-
   function toggleRole() {
-    appState.role = (appState.role === 'Admin') ? 'Worker' : 'Admin';
+    appState.role = appState.role === 'Worker' ? 'Admin' : 'Worker';
     saveState();
     updateRoleUI();
   }
 
   function updateRoleUI() {
-    document.getElementById('roleLabel').innerText = `Role: ${appState.role} Mode`;
-    document.getElementById('adminPanel').style.display = (appState.role === 'Admin') ? 'block' : 'none';
+    document.getElementById('roleLabel').innerText = `Mode: ${appState.role} View`;
+    document.getElementById('adminPanel').style.display = appState.role === 'Admin' ? 'block' : 'none';
   }
 
-  function renderSiteOptions() {
+  function renderSiteDropdown() {
     const select = document.getElementById('siteSelect');
     select.innerHTML = '';
     appState.sites.forEach(site => {
       const opt = document.createElement('option');
       opt.value = site;
       opt.innerText = site;
-      if(site === appState.currentSite) opt.selected = true;
+      if (site === appState.activeSite) opt.selected = true;
       select.appendChild(opt);
     });
-    document.getElementById('displaySiteName').innerText = appState.currentSite;
-    document.getElementById('tableSiteTitle').innerText = appState.currentSite;
+    document.getElementById('displaySiteBadge').innerText = appState.activeSite;
+    document.getElementById('summarySiteTitle').innerText = appState.activeSite;
   }
 
-  function addSite() {
-    const name = document.getElementById('newSiteName').value.trim();
-    if(name && !appState.sites.includes(name)) {
-      appState.sites.push(name);
-      appState.currentSite = name;
+  function renderMaterialDropdown() {
+    const select = document.getElementById('materialSelect');
+    select.innerHTML = '<option value="">-- Choose Item from Master List --</option>';
+    masterCatalog.forEach((item, index) => {
+      const opt = document.createElement('option');
+      opt.value = index;
+      opt.innerText = `${item.name} - ₹${item.rate}`;
+      select.appendChild(opt);
+    });
+  }
+
+  function addNewSite() {
+    const val = document.getElementById('newSiteInput').value.trim();
+    if (val && !appState.sites.includes(val)) {
+      appState.sites.push(val);
+      appState.activeSite = val;
       saveState();
-      renderSiteOptions();
+      renderSiteDropdown();
       renderTable();
-      document.getElementById('newSiteName').value = '';
+      document.getElementById('newSiteInput').value = '';
     }
   }
 
-  function changeSite() {
-    appState.currentSite = document.getElementById('siteSelect').value;
+  function switchSite() {
+    appState.activeSite = document.getElementById('siteSelect').value;
     saveState();
-    document.getElementById('displaySiteName').innerText = appState.currentSite;
-    document.getElementById('tableSiteTitle').innerText = appState.currentSite;
+    document.getElementById('displaySiteBadge').innerText = appState.activeSite;
+    document.getElementById('summarySiteTitle').innerText = appState.activeSite;
     renderTable();
   }
 
-  function renderMasterDropdown() {
-    const select = document.getElementById('itemSelect');
-    select.innerHTML = '<option value="">-- Select Pre-fixed Item --</option>';
-    appState.masterCatalog.forEach((item, index) => {
-      const opt = document.createElement('option');
-      opt.value = index;
-      opt.innerText = `${item.name} (₹${item.rate})`;
-      select.appendChild(opt);
-    });
-  }
+  function addItemToList() {
+    const matIdx = document.getElementById('materialSelect').value;
+    const qty = parseFloat(document.getElementById('materialQty').value);
+    const photo = document.getElementById('materialPhoto').value.trim();
 
-  function renderMasterTags() {
-    const container = document.getElementById('masterTagsList');
-    container.innerHTML = '';
-    appState.masterCatalog.forEach((item, index) => {
-      container.innerHTML += `<span class="tag">
-        <b>${item.name}</b> (₹${item.rate}) 
-        <a href="#" onclick="deleteMasterItem(${index})" style="color:red; text-decoration:none;">✕</a>
-      </span>`;
-    });
-  }
-
-  function addMasterItem() {
-    const name = document.getElementById('masterName').value.trim();
-    const rate = parseFloat(document.getElementById('masterRate').value);
-    const photo = document.getElementById('masterPhoto').value.trim();
-
-    if(name && !isNaN(rate)) {
-      appState.masterCatalog.push({ name, rate, photo, sqft: name.toLowerCase().includes('plywood') || name.toLowerCase().includes('hdhmr') ? 32 : null });
-      saveState();
-      renderMasterDropdown();
-      renderMasterTags();
-      document.getElementById('masterName').value = '';
-      document.getElementById('masterRate').value = '';
-      document.getElementById('masterPhoto').value = '';
-    }
-  }
-
-  function deleteMasterItem(index) {
-    appState.masterCatalog.splice(index, 1);
-    saveState();
-    renderMasterDropdown();
-    renderMasterTags();
-  }
-
-  function onMaterialSelect() {
-    const idx = document.getElementById('itemSelect').value;
-    if(idx !== "") {
-      const item = appState.masterCatalog[idx];
-      if(item.photo) document.getElementById('itemPhoto').value = item.photo;
-    }
-  }
-
-  function addSiteItem() {
-    const idx = document.getElementById('itemSelect').value;
-    const qty = parseFloat(document.getElementById('itemQty').value);
-    const customPhoto = document.getElementById('itemPhoto').value.trim();
-
-    if(idx === "" || isNaN(qty) || qty <= 0) {
-      alert("Kripya Material Select Karein aur Sahi Quantity Dalein!");
+    if (matIdx === "" || isNaN(qty) || qty <= 0) {
+      alert("Kripya Material choose karein aur Sahi Quantity bharein!");
       return;
     }
 
-    const master = appState.masterCatalog[idx];
+    const item = masterCatalog[matIdx];
     const now = new Date();
-    const timestamp = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const dateStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const dateIso = now.toISOString().split('T')[0];
 
     const record = {
       id: Date.now(),
-      dateStr: timestamp,
+      dateStr: dateStr,
       dateIso: dateIso,
-      name: master.name,
+      name: item.name,
+      rate: item.rate,
+      sqftFactor: item.sqftFactor || null,
+      unit: item.unit || 'sqft',
       qty: qty,
-      rate: master.rate,
-      sqftFactor: master.sqft || null,
-      photo: customPhoto || master.photo || ''
+      photo: photo
     };
 
-    if(!appState.siteRecords[appState.currentSite]) {
-      appState.siteRecords[appState.currentSite] = [];
+    if (!appState.records[appState.activeSite]) {
+      appState.records[appState.activeSite] = [];
     }
-    appState.siteRecords[appState.currentSite].push(record);
+    appState.records[appState.activeSite].push(record);
 
     saveState();
     renderTable();
 
-    document.getElementById('itemSelect').value = '';
-    document.getElementById('itemQty').value = '';
-    document.getElementById('itemPhoto').value = '';
+    document.getElementById('materialSelect').value = '';
+    document.getElementById('materialQty').value = '';
+    document.getElementById('materialPhoto').value = '';
   }
 
-  function updateTableQty(id, newQty) {
-    const records = appState.siteRecords[appState.currentSite] || [];
-    const item = records.find(r => r.id === id);
-    if(item && newQty > 0) {
+  function updateQty(id, newQty) {
+    const list = appState.records[appState.activeSite] || [];
+    const item = list.find(r => r.id === id);
+    if (item && newQty > 0) {
       item.qty = parseFloat(newQty);
       saveState();
       renderTable();
     }
   }
 
-  function deleteSiteItem(id) {
-    appState.siteRecords[appState.currentSite] = appState.siteRecords[appState.currentSite].filter(r => r.id !== id);
+  function deleteItem(id) {
+    appState.records[appState.activeSite] = appState.records[appState.activeSite].filter(r => r.id !== id);
     saveState();
     renderTable();
   }
 
   function clearDateFilter() {
-    document.getElementById('historyDateFilter').value = '';
+    document.getElementById('dateFilter').value = '';
     renderTable();
   }
 
   function renderTable() {
-    const tbody = document.getElementById('siteTableBody');
+    const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
-    
-    let records = appState.siteRecords[appState.currentSite] || [];
-    const filterDate = document.getElementById('historyDateFilter').value;
 
-    if(filterDate) {
-      records = records.filter(r => r.dateIso === filterDate);
+    let list = appState.records[appState.activeSite] || [];
+    const filterDate = document.getElementById('dateFilter').value;
+
+    if (filterDate) {
+      list = list.filter(r => r.dateIso === filterDate);
     }
 
     let grandTotal = 0;
 
-    records.forEach((rec, i) => {
+    list.forEach((rec, idx) => {
       let totalSqft = rec.sqftFactor ? (rec.qty * rec.sqftFactor) : '-';
       let amount = rec.sqftFactor ? (totalSqft * rec.rate) : (rec.qty * rec.rate);
       grandTotal += amount;
 
-      const photoHtml = rec.photo ? `<a href="${rec.photo}" target="_blank"><img src="${rec.photo}" style="width:32px;height:32px;object-fit:cover;border-radius:4px;"></a>` : 'No';
+      const photoIcon = rec.photo ? `<a href="${rec.photo}" target="_blank">📷</a>` : '-';
 
       tbody.innerHTML += `
         <tr>
-          <td>${i + 1}</td>
-          <td>${rec.dateStr}</td>
-          <td>${photoHtml}</td>
-          <td><b>${rec.name}</b></td>
+          <td>${idx + 1}</td>
+          <td><small>${rec.dateStr}</small></td>
+          <td class="text-left"><b>${rec.name}</b></td>
           <td>
-            <input type="number" class="qty-input" value="${rec.qty}" min="0.1" step="any" onchange="updateTableQty(${rec.id}, this.value)">
+            <input type="number" class="qty-edit" value="${rec.qty}" min="0.1" step="any" onchange="updateQty(${rec.id}, this.value)">
           </td>
-          <td>${totalSqft !== '-' ? totalSqft.toFixed(2) + ' sqft' : '-'}</td>
-          <td>₹${rec.rate.toFixed(2)}</td>
+          <td>${totalSqft !== '-' ? totalSqft.toFixed(1) + ' sqft' : rec.qty + ' ' + rec.unit}</td>
+          <td>₹${rec.rate}</td>
           <td><b>₹${amount.toFixed(2)}</b></td>
+          <td>${photoIcon}</td>
           <td class="no-print">
-            <button class="btn-danger" style="padding:4px 8px; font-size:11px;" onclick="deleteSiteItem(${rec.id})">Del</button>
+            <button style="background:red; color:white; border:none; padding:3px 6px; border-radius:3px; cursor:pointer;" onclick="deleteItem(${rec.id})">✕</button>
           </td>
         </tr>
       `;
@@ -437,8 +363,8 @@
     document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
   }
 
-  function downloadPDF() {
-    window.print();
+  function saveState() {
+    localStorage.setItem('siteMaterialData', JSON.stringify(appState));
   }
 
   window.onload = init;
