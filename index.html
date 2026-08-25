@@ -1,631 +1,187 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Material Management System with Date History</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-  
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <title>Material Management System</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f6f9; }
+    h2, h3 { color: #333; }
+    .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .form-group { margin-bottom: 12px; }
+    label { font-weight: bold; display: block; margin-bottom: 5px; }
+    select, input, button { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    button { background-color: #28a745; color: white; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; }
+    button:hover { background-color: #218838; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    th { background-color: #007bff; color: white; }
+    .btn-delete { background-color: #dc3545; padding: 5px 10px; width: auto; font-size: 12px; }
+    .btn-edit { background-color: #ffc107; color: black; padding: 5px 10px; width: auto; font-size: 12px; margin-right: 5px; }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen text-gray-800 font-sans pb-10">
+<body>
 
-  <!-- Header -->
-  <header class="bg-blue-900 text-white p-4 shadow-md flex justify-between items-center flex-wrap gap-2">
-    <div class="flex items-center gap-3">
-      <img id="companyLogoDisplay" src="logo.png" onerror="this.style.display='none'" alt="Logo" class="w-12 h-12 object-contain bg-white p-1 rounded-md shadow">
-      <div>
-        <h1 id="companyDisplay" class="text-xl font-extrabold tracking-wide">Design Home Interior</h1>
-        <p id="siteDisplayHeader" class="text-xs text-blue-200 mt-0.5">Site: Default Site</p>
-        <span id="roleBadge" class="text-[10px] bg-blue-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold">Role: Admin Mode</span>
-      </div>
-    </div>
-    <div class="flex items-center gap-2">
-      <button id="authBtn" onclick="toggleAuthModal()" class="bg-yellow-500 hover:bg-yellow-600 text-black text-xs font-bold px-3 py-2 rounded shadow transition">
-        Switch to Worker Mode
-      </button>
-    </div>
-  </header>
+  <h2>Design Home Interior - Site Material List</h2>
 
-  <div class="max-w-5xl mx-auto p-4">
-
-    <!-- Admin Settings Panel -->
-    <div id="adminSettingsPanel" class="bg-white p-4 rounded-lg shadow mb-6 border-l-4 border-blue-900">
-      <h2 class="text-md font-bold text-blue-900 mb-3">⚙️ Admin Control Panel</h2>
-      
-      <!-- Company Details -->
-      <div class="mb-4 pb-3 border-b grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Company Name</label>
-          <input type="text" id="companyInput" placeholder="Enter Company Name" class="w-full p-2 border rounded text-sm">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Logo Image URL</label>
-          <input type="text" id="logoInput" placeholder="Paste Logo Image Link or logo.png" class="w-full p-2 border rounded text-sm">
-        </div>
-        <div class="sm:col-span-2 text-right">
-          <button onclick="saveCompanyDetails()" class="bg-blue-900 text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-800">Save Company Details</button>
-        </div>
-      </div>
-
-      <!-- Site Management & Date History Filter -->
-      <div class="mb-4 pb-3 border-b grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Select Active Site</label>
-          <select id="siteSelect" onchange="changeSite(this.value)" class="w-full p-2 border rounded text-sm bg-gray-50 font-semibold"></select>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">📅 Filter Material History By Date</label>
-          <div class="flex gap-1">
-            <input type="date" id="dateFilterInput" onchange="applyDateFilter()" class="w-full p-2 border rounded text-sm bg-blue-50">
-            <button onclick="resetDateFilter()" class="bg-gray-300 px-2 rounded text-xs font-bold hover:bg-gray-400">All</button>
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Add New Site</label>
-          <div class="flex gap-2">
-            <input type="text" id="newSiteInput" placeholder="e.g. Kesar Site" class="flex-1 p-2 border rounded text-sm">
-            <button onclick="addNewSite()" class="bg-blue-900 text-white px-3 py-2 rounded text-sm font-bold">+ Add Site</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Master Material Creator -->
-      <div>
-        <h3 class="text-xs font-bold text-gray-700 mb-2">➕ Add / Master Material Catalog</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-          <input type="text" id="masterName" placeholder="Material Name & Size" class="p-2 border rounded text-xs sm:col-span-2">
-          <input type="number" id="masterRate" placeholder="Fixed Rate (₹)" class="p-2 border rounded text-xs">
-          <input type="text" id="masterPhoto" placeholder="Default Photo Link" class="p-2 border rounded text-xs">
-        </div>
-        <button onclick="saveMasterItem()" class="mt-2 bg-green-700 text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-green-800">+ Add Master Item</button>
-
-        <div class="mt-4 border-t pt-3">
-          <h4 class="text-xs font-bold text-gray-600 mb-2">Saved Master Materials (Preset List):</h4>
-          <div id="masterListContainer" class="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-1 bg-gray-50 rounded border"></div>
-        </div>
-      </div>
+  <!-- Add Item to Site List -->
+  <div class="card">
+    <h3>⚡ Add / Edit Site Material</h3>
+    <div class="form-group">
+      <label>Select Material</label>
+      <select id="materialSelect">
+        <option value="">-- Select Material --</option>
+      </select>
     </div>
 
-    <!-- Worker Entry Form -->
-    <div class="bg-white p-4 rounded-lg shadow mb-6">
-      <h2 class="text-md font-bold text-gray-700 mb-3">⚡ Add Material to Site List (Auto-Saves Date & Time)</h2>
-      <form id="materialForm" onsubmit="handleAddItem(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-        <div class="sm:col-span-1">
-          <label class="block text-xs font-bold text-gray-600 mb-1">Select Material</label>
-          <select id="masterDropdown" onchange="onMasterSelect()" class="w-full p-2 border rounded text-sm bg-gray-50 font-semibold">
-            <option value="">-- Select Pre-fixed Item --</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Sheets / Quantity</label>
-          <input type="number" id="itemQty" required min="1" step="any" placeholder="e.g. 10" oninput="calculatePreview()" class="w-full p-2 border rounded text-sm">
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-gray-600 mb-1">Photo Link (Optional)</label>
-          <input type="text" id="workerPhoto" placeholder="Paste Photo Link" class="w-full p-2 border rounded text-sm">
-        </div>
-
-        <div class="flex items-end">
-          <button type="submit" class="w-full bg-green-600 text-white py-2 rounded text-sm font-bold hover:bg-green-700 transition">
-            + Add to List
-          </button>
-        </div>
-      </form>
-
-      <!-- Auto Calculations Preview -->
-      <div id="calcPreview" class="hidden mt-3 p-2 bg-gray-50 border rounded text-xs flex justify-between text-gray-600">
-        <span>Total Sqft: <strong id="previewSqft" class="text-gray-900">0</strong></span>
-        <span class="admin-only">Rate: <strong id="previewRate" class="text-gray-900">₹0</strong></span>
-        <span class="admin-only">Est. Amount: <strong id="previewAmount" class="text-blue-900">₹0</strong></span>
-      </div>
+    <div class="form-group">
+      <label>Enter Quantity (Qty)</label>
+      <input type="number" id="itemQty" placeholder="e.g. 5" min="1">
     </div>
 
-    <!-- Site Material Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="p-4 border-b flex justify-between items-center flex-wrap gap-2">
-        <div>
-          <h2 class="text-md font-bold text-gray-700">📋 Site List: <span id="currentSiteLabel" class="text-blue-900 font-extrabold">Default Site</span></h2>
-          <span id="activeDateFilterLabel" class="text-xs text-blue-600 font-semibold hidden">Showing materials for date: <strong id="selectedDateText"></strong></span>
-        </div>
-        <button onclick="downloadPDF()" class="bg-red-600 text-white text-xs font-bold px-3 py-2 rounded hover:bg-red-700 transition">
-          📄 Download PDF
-        </button>
-      </div>
-
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse text-sm">
-          <thead>
-            <tr class="bg-gray-100 text-gray-700 border-b text-xs">
-              <th class="p-3">#</th>
-              <th class="p-3">Date & Time</th>
-              <th class="p-3">Photo</th>
-              <th class="p-3">Item Description</th>
-              <th class="p-3 text-center">Qty</th>
-              <th class="p-3 text-center">Total Sqft</th>
-              <th class="p-3 text-right admin-only">Rate (₹)</th>
-              <th class="p-3 text-right admin-only">Amount (₹)</th>
-              <th class="p-3 text-center">Action</th>
-            </tr>
-          </thead>
-          <tbody id="materialsTableBody"></tbody>
-          <tfoot id="tableFooter" class="admin-only border-t bg-gray-50 font-bold">
-            <tr>
-              <td colspan="7" class="p-3 text-right text-gray-700">Total Amount:</td>
-              <td id="grandTotal" class="p-3 text-right text-blue-900">₹0.00</td>
-              <td></td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    </div>
-
+    <button onclick="addOrUpdateMaterial()">+ Save to Site List</button>
   </div>
 
-  <!-- Modal Auth -->
-  <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
-      <h3 class="text-lg font-bold text-gray-800 mb-2">Access Code Verification</h3>
-      <p class="text-xs text-gray-500 mb-4">Worker Code: <span class="font-bold">DHI0001</span></p>
-      <input type="password" id="accessCodeInput" placeholder="Enter Access Code" class="w-full p-2 border rounded mb-4 text-sm">
-      <div class="flex justify-end gap-2">
-        <button onclick="toggleAuthModal()" class="px-4 py-2 text-xs text-gray-500">Cancel</button>
-        <button onclick="verifyAccessCode()" class="px-4 py-2 text-xs bg-blue-900 text-white rounded font-bold">Submit</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Edit Table Item -->
-  <div id="editItemModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-lg p-5 max-w-md w-full shadow-xl">
-      <h3 class="text-md font-bold text-gray-800 mb-3">✏️ Edit Site Material Item</h3>
-      <input type="hidden" id="editItemId">
-      
-      <div class="space-y-3 text-xs">
-        <div>
-          <label class="block font-bold mb-1">Item Name</label>
-          <input type="text" id="editItemName" class="w-full p-2 border rounded">
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-bold mb-1">Quantity</label>
-            <input type="number" id="editItemQty" step="any" class="w-full p-2 border rounded">
-          </div>
-          <div class="admin-only">
-            <label class="block font-bold mb-1">Rate (₹)</label>
-            <input type="number" id="editItemRate" step="any" class="w-full p-2 border rounded">
-          </div>
-        </div>
-        <div>
-          <label class="block font-bold mb-1">Date Sent (YYYY-MM-DD)</label>
-          <input type="date" id="editItemDate" class="w-full p-2 border rounded">
-        </div>
-        <div>
-          <label class="block font-bold mb-1">Photo URL</label>
-          <input type="text" id="editItemPhoto" class="w-full p-2 border rounded">
-        </div>
-      </div>
-
-      <div class="flex justify-end gap-2 mt-4">
-        <button onclick="closeEditModal()" class="px-4 py-1.5 text-xs text-gray-500 border rounded">Cancel</button>
-        <button onclick="saveItemEdit()" class="px-4 py-1.5 text-xs bg-blue-900 text-white rounded font-bold">Save Changes</button>
-      </div>
-    </div>
+  <!-- Table List -->
+  <div class="card">
+    <h3>📋 Site Material List</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Sr. No</th>
+          <th>Material Name</th>
+          <th>Size / Unit</th>
+          <th>Rate (₹)</th>
+          <th>Qty</th>
+          <th>Total Amount (₹)</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="materialTableBody">
+      </tbody>
+    </table>
+    <h3 style="text-align: right; margin-top: 15px;">Total Site Amount: ₹<span id="grandTotal">0</span></h3>
   </div>
 
   <script>
-    const firebaseConfig = {
-      databaseURL: "https://site-material-app-default-rtdb.europe-west1.firebasedatabase.app"
-    };
-    
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    const WORKER_CODE = "DHI0001";
-    const ADMIN_CODE = "ADMIN";
-    let currentRole = "admin";
-    let currentSiteId = "default_site";
-    let currentSiteName = "Default Site";
-    let selectedDateFilter = "";
-    let masterCatalog = {};
-    let items = [];
-
-    const defaultMasterItems = [
-      { name: "18mm Plywood 8*4", rate: 60, photo: "" },
-      { name: "12mm Plywood 8*4", rate: 45, photo: "" },
-      { name: "12mm Plywood 7*4", rate: 45, photo: "" },
-      { name: "6mm Plywood 8*4", rate: 28, photo: "" },
-      { name: "Flush Door 7*3", rate: 1200, photo: "" },
-      { name: "SF Laminate 8*4", rate: 450, photo: "" },
-      { name: "1mm Acrylic Sheet 8*4", rate: 1800, photo: "" },
-      { name: "Fevicol SH 5kg", rate: 1100, photo: "" }
+    // Default 32 Items Master List
+    const defaultMasterCatalog = [
+      { id: 1, name: "18mm Plywood", unit: "8*4/7*4 (sqft)", rate: 60, type: "sqft" },
+      { id: 2, name: "12mm Plywood", unit: "8*4/7*4 (sqft)", rate: 45, type: "sqft" },
+      { id: 3, name: "08mm Plywood", unit: "8*4/7*4 (sqft)", rate: 40, type: "sqft" },
+      { id: 4, name: "06mm Plywood", unit: "8*4/7*4 (sqft)", rate: 30, type: "sqft" },
+      { id: 5, name: "18mm HDHMR Sheet", unit: "8*4 (sqft)", rate: 60, type: "sqft" },
+      { id: 6, name: "12mm HDHMR Sheet", unit: "8*4 (sqft)", rate: 45, type: "sqft" },
+      { id: 7, name: "08mm HDHMR Sheet", unit: "8*4 (sqft)", rate: 32, type: "sqft" },
+      { id: 8, name: "06mm HDHMR Sheet", unit: "8*4 (sqft)", rate: 28, type: "sqft" },
+      { id: 9, name: "04mm HDHMR Sheet", unit: "8*4 (sqft)", rate: 25, type: "sqft" },
+      { id: 10, name: "0.8mm Internal Laminate White", unit: "8*4 (Sheet)", rate: 500, type: "unit" },
+      { id: 11, name: "0.8mm Internal Laminate Fabric", unit: "8*4 (Sheet)", rate: 550, type: "unit" },
+      { id: 12, name: "0.8mm Internal Laminate other", unit: "8*4 (Sheet)", rate: 500, type: "unit" },
+      { id: 13, name: "Fevicol", unit: "KG", rate: 220, type: "unit" },
+      { id: 14, name: "Abro tape Roll", unit: "Nos", rate: 120, type: "unit" },
+      { id: 15, name: "Nails 19 *3/4", unit: "kg", rate: 90, type: "unit" },
+      { id: 16, name: "Nails 17 *3/4", unit: "kg", rate: 90, type: "unit" },
+      { id: 17, name: "Nails 17 *1", unit: "kg", rate: 90, type: "unit" },
+      { id: 18, name: "Nails 17 *1.1/4", unit: "kg", rate: 90, type: "unit" },
+      { id: 19, name: "Nails 14 *1.3/4", unit: "kg", rate: 90, type: "unit" },
+      { id: 20, name: "Screws 10*100 star", unit: "1 Box = 100", rate: 400, type: "unit" },
+      { id: 21, name: "Screws 10*75 star", unit: "1 Box = 100", rate: 400, type: "unit" },
+      { id: 22, name: "Screws 8*75 star", unit: "1 Box = 100", rate: 400, type: "unit" },
+      { id: 23, name: "Screws 8*60 star", unit: "1 Box = 100", rate: 400, type: "unit" },
+      { id: 24, name: "Screws 8*38 star", unit: "1 Box = 100", rate: 400, type: "unit" },
+      { id: 25, name: "Screws 8*32 star", unit: "1 Box = 100", rate: 400, type: "unit" },
+      { id: 26, name: "Screws 6*32 star", unit: "1 Box = 100", rate: 400, type: "unit" },
+      { id: 27, name: "Screws 6*19 star", unit: "1 Box = 100", rate: 400, type: "unit" },
+      { id: 28, name: "Screws 6*13 star", unit: "1 Box = 100", rate: 400, type: "unit" },
+      { id: 29, name: "Shelf thread Screws 6*32", unit: "1 Box = 100", rate: 400, type: "unit" },
+      { id: 30, name: "Shelf thread Screws 6*19", unit: "1 Box = 100", rate: 400, type: "unit" },
+      { id: 31, name: "6mm Rawal plug", unit: "1 Box = 100", rate: 400, type: "unit" },
+      { id: 32, name: "Carcass Edge Banding 0.8mm", unit: "MTR", rate: 25, type: "unit" }
     ];
 
-    window.onload = function() {
-      listenCompany();
-      listenSites();
-      listenMasterCatalog();
-      loadSiteData(currentSiteId);
-      renderUI();
-    };
+    let siteList = JSON.parse(localStorage.getItem('siteMaterialList')) || [];
 
-    function listenCompany() {
-      db.ref("companyDetails").on("value", (snap) => {
-        const details = snap.val() || { name: "Design Home Interior", logo: "logo.png" };
-        document.getElementById("companyDisplay").innerText = details.name || "Design Home Interior";
-        document.getElementById("companyInput").value = details.name || "Design Home Interior";
-        
-        const logoImg = document.getElementById("companyLogoDisplay");
-        logoImg.src = details.logo || "logo.png";
-        logoImg.style.display = "block";
-        document.getElementById("logoInput").value = details.logo || "";
+    // Populate Dropdown
+    function populateDropdown() {
+      const select = document.getElementById('materialSelect');
+      select.innerHTML = '<option value="">-- Select Material --</option>';
+      defaultMasterCatalog.forEach(item => {
+        select.innerHTML += `<option value="${item.id}">${item.name} (${item.unit}) - ₹${item.rate}</option>`;
       });
     }
 
-    function saveCompanyDetails() {
-      const name = document.getElementById("companyInput").value.trim();
-      const logo = document.getElementById("logoInput").value.trim();
-      db.ref("companyDetails").set({ name, logo });
-    }
+    // Add or Edit Material
+    function addOrUpdateMaterial() {
+      const selectedId = parseInt(document.getElementById('materialSelect').value);
+      const qty = parseFloat(document.getElementById('itemQty').value);
 
-    function listenMasterCatalog() {
-      db.ref("masterCatalog").on("value", (snap) => {
-        masterCatalog = snap.val();
-        if (!masterCatalog) {
-          defaultMasterItems.forEach(item => db.ref("masterCatalog").push(item));
-          return;
-        }
-
-        const drop = document.getElementById("masterDropdown");
-        const listCont = document.getElementById("masterListContainer");
-        drop.innerHTML = '<option value="">-- Select Pre-fixed Item --</option>';
-        listCont.innerHTML = "";
-
-        Object.keys(masterCatalog).forEach(id => {
-          const item = masterCatalog[id];
-          const opt = document.createElement("option");
-          opt.value = id;
-          opt.innerText = item.name + (currentRole === 'admin' ? ` (₹${item.rate})` : '');
-          drop.appendChild(opt);
-
-          const chip = document.createElement("div");
-          chip.className = "bg-white border rounded px-2 py-1 text-xs flex items-center gap-2 shadow-sm";
-          chip.innerHTML = `
-            <span><strong>${item.name}</strong> (₹${item.rate})</span>
-            <button onclick="editMasterItem('${id}')" class="text-blue-600 font-bold text-[10px]">Edit</button>
-            <button onclick="deleteMasterItem('${id}')" class="text-red-500 font-bold text-[10px]">✕</button>
-          `;
-          listCont.appendChild(chip);
-        });
-      });
-    }
-
-    function saveMasterItem() {
-      const name = document.getElementById("masterName").value.trim();
-      const rate = parseFloat(document.getElementById("masterRate").value) || 0;
-      const photo = document.getElementById("masterPhoto").value.trim();
-      if (!name) return alert("Enter item name!");
-      db.ref("masterCatalog").push({ name, rate, photo }).then(() => {
-        document.getElementById("masterName").value = "";
-        document.getElementById("masterRate").value = "";
-        document.getElementById("masterPhoto").value = "";
-      });
-    }
-
-    function editMasterItem(id) {
-      const item = masterCatalog[id];
-      const newName = prompt("Edit Item Name:", item.name);
-      if (newName === null) return;
-      const newRate = prompt("Edit Rate (₹):", item.rate);
-      if (newRate === null) return;
-      db.ref("masterCatalog/" + id).update({ name: newName.trim(), rate: parseFloat(newRate) || 0 });
-    }
-
-    function deleteMasterItem(id) {
-      if (confirm("Delete this master material?")) db.ref("masterCatalog/" + id).remove();
-    }
-
-    function listenSites() {
-      db.ref("sites").on("value", (snap) => {
-        const sites = snap.val() || {};
-        const select = document.getElementById("siteSelect");
-        select.innerHTML = "";
-        if (!sites["default_site"]) db.ref("sites/default_site").set({ name: "Default Site" });
-
-        Object.keys(sites).forEach(siteId => {
-          const opt = document.createElement("option");
-          opt.value = siteId;
-          opt.innerText = sites[siteId].name;
-          if (siteId === currentSiteId) opt.selected = true;
-          select.appendChild(opt);
-        });
-      });
-    }
-
-    function addNewSite() {
-      const siteName = document.getElementById("newSiteInput").value.trim();
-      if (!siteName) return;
-      const siteId = "site_" + Date.now();
-      db.ref("sites/" + siteId).set({ name: siteName }).then(() => {
-        document.getElementById("newSiteInput").value = "";
-        changeSite(siteId);
-      });
-    }
-
-    function changeSite(siteId) {
-      currentSiteId = siteId;
-      db.ref("sites/" + siteId + "/name").once("value", (snap) => {
-        currentSiteName = snap.val() || "Site";
-        document.getElementById("currentSiteLabel").innerText = currentSiteName;
-        document.getElementById("siteDisplayHeader").innerText = "Site: " + currentSiteName;
-        loadSiteData(currentSiteId);
-      });
-    }
-
-    function loadSiteData(siteId) {
-      db.ref("site_data/" + siteId + "/items").on("value", (snap) => {
-        const data = snap.val();
-        items = [];
-        if (data) Object.keys(data).forEach(k => items.push({ firebaseId: k, ...data[k] }));
-        renderTable();
-      });
-    }
-
-    function applyDateFilter() {
-      selectedDateFilter = document.getElementById("dateFilterInput").value;
-      renderTable();
-    }
-
-    function resetDateFilter() {
-      document.getElementById("dateFilterInput").value = "";
-      selectedDateFilter = "";
-      renderTable();
-    }
-
-    function onMasterSelect() { calculatePreview(); }
-
-    function calculatePreview() {
-      const masterId = document.getElementById("masterDropdown").value;
-      const qty = parseFloat(document.getElementById("itemQty").value) || 0;
-      const preview = document.getElementById("calcPreview");
-
-      if (!masterId || qty <= 0) { preview.classList.add("hidden"); return; }
-
-      preview.classList.remove("hidden");
-      const mat = masterCatalog[masterId];
-      let sqftPerUnit = 0;
-      const match = mat.name.match(/(\d+\.?\d*)\s*[*xX]\s*(\d+\.?\d*)/);
-      if (match) sqftPerUnit = parseFloat(match[1]) * parseFloat(match[2]);
-
-      const totalSqft = sqftPerUnit > 0 ? (sqftPerUnit * qty) : 0;
-      const totalMult = totalSqft > 0 ? totalSqft : qty;
-      const amount = totalMult * (mat.rate || 0);
-
-      document.getElementById("previewSqft").innerText = totalSqft > 0 ? totalSqft.toFixed(2) + " sqft" : "-";
-      document.getElementById("previewRate").innerText = "₹" + (mat.rate || 0).toFixed(2);
-      document.getElementById("previewAmount").innerText = "₹" + amount.toFixed(2);
-    }
-
-    function handleAddItem(e) {
-      e.preventDefault();
-      const masterId = document.getElementById("masterDropdown").value;
-      if (!masterId) return alert("Please select a material!");
-      
-      const mat = masterCatalog[masterId];
-      const qty = parseFloat(document.getElementById("itemQty").value);
-      const workerPhotoInput = document.getElementById("workerPhoto").value.trim();
-
-      let sqft = 0;
-      const match = mat.name.match(/(\d+\.?\d*)\s*[*xX]\s*(\d+\.?\d*)/);
-      if (match) sqft = parseFloat(match[1]) * parseFloat(match[2]) * qty;
-
-      const rate = mat.rate || 0;
-      const totalMult = sqft > 0 ? sqft : qty;
-      const amount = totalMult * rate;
-
-      const now = new Date();
-      const dateString = now.toISOString().split('T')[0];
-      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      const newItem = {
-        name: mat.name,
-        qty: qty,
-        sqft: sqft,
-        rate: rate,
-        amount: amount,
-        photo: workerPhotoInput || mat.photo || "",
-        date: dateString,
-        time: timeString
-      };
-
-      db.ref("site_data/" + currentSiteId + "/items").push(newItem);
-      document.getElementById("materialForm").reset();
-      document.getElementById("calcPreview").classList.add("hidden");
-    }
-
-    function openEditModal(firebaseId) {
-      const item = items.find(i => i.firebaseId === firebaseId);
-      if (!item) return;
-
-      document.getElementById("editItemId").value = firebaseId;
-      document.getElementById("editItemName").value = item.name;
-      document.getElementById("editItemQty").value = item.qty;
-      document.getElementById("editItemRate").value = item.rate || 0;
-      document.getElementById("editItemDate").value = item.date || "";
-      document.getElementById("editItemPhoto").value = item.photo || "";
-
-      document.getElementById("editItemModal").classList.remove("hidden");
-    }
-
-    function closeEditModal() { document.getElementById("editItemModal").classList.add("hidden"); }
-
-    function saveItemEdit() {
-      const firebaseId = document.getElementById("editItemId").value;
-      const name = document.getElementById("editItemName").value.trim();
-      const qty = parseFloat(document.getElementById("editItemQty").value) || 0;
-      const rate = parseFloat(document.getElementById("editItemRate").value) || 0;
-      const date = document.getElementById("editItemDate").value;
-      const photo = document.getElementById("editItemPhoto").value.trim();
-
-      let sqft = 0;
-      const match = name.match(/(\d+\.?\d*)\s*[*xX]\s*(\d+\.?\d*)/);
-      if (match) sqft = parseFloat(match[1]) * parseFloat(match[2]) * qty;
-
-      const totalMult = sqft > 0 ? sqft : qty;
-      const amount = totalMult * rate;
-
-      db.ref("site_data/" + currentSiteId + "/items/" + firebaseId).update({
-        name, qty, sqft, rate, amount, date, photo
-      }).then(() => closeEditModal());
-    }
-
-    function deleteItem(id) {
-      if (confirm("Delete this item from site list?")) {
-        db.ref("site_data/" + currentSiteId + "/items/" + id).remove();
+      if (!selectedId || !qty || qty <= 0) {
+        alert("Kripya Material select karein aur Sahi Quantity dalein!");
+        return;
       }
-    }
 
-    function toggleAuthModal() {
-      document.getElementById("authModal").classList.toggle("hidden");
-      document.getElementById("accessCodeInput").value = "";
-    }
-
-    function verifyAccessCode() {
-      const code = document.getElementById("accessCodeInput").value.trim();
-      if (code === WORKER_CODE) { currentRole = "worker"; toggleAuthModal(); renderUI(); }
-      else if (code.toUpperCase() === ADMIN_CODE) { currentRole = "admin"; toggleAuthModal(); renderUI(); }
-      else alert("Invalid Code!");
-    }
-
-    function renderUI() {
-      const isAdmin = currentRole === "admin";
-      document.getElementById("roleBadge").innerText = isAdmin ? "Role: Admin Mode" : "Role: Worker Mode";
-      document.getElementById("roleBadge").className = isAdmin ? "text-[10px] bg-blue-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold" : "text-[10px] bg-green-700 px-2 py-0.5 rounded inline-block mt-1 font-semibold";
-      document.getElementById("authBtn").innerText = isAdmin ? "Switch to Worker Mode" : "Switch to Admin Mode";
-      document.getElementById("authBtn").onclick = isAdmin ? () => { currentRole = "worker"; renderUI(); } : () => toggleAuthModal();
+      const masterItem = defaultMasterCatalog.find(i => i.id === selectedId);
       
-      if (isAdmin) document.getElementById("adminSettingsPanel").classList.remove("hidden");
-      else document.getElementById("adminSettingsPanel").classList.add("hidden");
+      // Calculate Amount (Plywood/HDHMR Sqft basis calculation: 8*4 = 32 sqft per sheet assume karke total amt calculated, or direct unit multiplication)
+      let totalSqft = masterItem.type === "sqft" ? (qty * 32) : qty; 
+      let totalAmount = masterItem.type === "sqft" ? (totalSqft * masterItem.rate) : (qty * masterItem.rate);
 
-      document.querySelectorAll(".admin-only").forEach(el => isAdmin ? el.classList.remove("hidden") : el.classList.add("hidden"));
-      listenMasterCatalog();
-      renderTable();
-    }
-
-    function renderTable() {
-      const tbody = document.getElementById("materialsTableBody");
-      const isAdmin = currentRole === "admin";
-      tbody.innerHTML = "";
-      let total = 0;
-
-      const filteredItems = selectedDateFilter 
-        ? items.filter(i => i.date === selectedDateFilter)
-        : items;
-
-      if (selectedDateFilter) {
-        document.getElementById("activeDateFilterLabel").classList.remove("hidden");
-        document.getElementById("selectedDateText").innerText = selectedDateFilter;
+      const existingIndex = siteList.findIndex(i => i.id === selectedId);
+      if (existingIndex > -1) {
+        siteList[existingIndex].qty = qty;
+        siteList[existingIndex].amount = totalAmount;
       } else {
-        document.getElementById("activeDateFilterLabel").classList.add("hidden");
+        siteList.push({
+          id: masterItem.id,
+          name: masterItem.name,
+          unit: masterItem.unit,
+          rate: masterItem.rate,
+          qty: qty,
+          amount: totalAmount
+        });
       }
 
-      filteredItems.forEach((item, index) => {
-        total += item.amount || 0;
-        const row = document.createElement("tr");
-        row.className = "border-b hover:bg-gray-50";
+      localStorage.setItem('siteMaterialList', JSON.stringify(siteList));
+      document.getElementById('itemQty').value = '';
+      renderTable();
+    }
 
-        const photoCell = item.photo 
-          ? `<a href="${item.photo}" target="_blank" class="text-blue-600 font-bold text-xs underline">🖼️ View</a>` 
-          : `<span class="text-gray-400 text-xs">No Photo</span>`;
+    // Delete Item
+    function deleteItem(index) {
+      siteList.splice(index, 1);
+      localStorage.setItem('siteMaterialList', JSON.stringify(siteList));
+      renderTable();
+    }
 
-        const dateTxt = item.date ? `${item.date}<br><span class="text-[10px] text-gray-400">${item.time || ''}</span>` : '-';
+    // Render Table
+    function renderTable() {
+      const tbody = document.getElementById('materialTableBody');
+      tbody.innerHTML = '';
+      let grandTotal = 0;
 
-        row.innerHTML = `
-          <td class="p-3">${index + 1}</td>
-          <td class="p-3 text-xs font-semibold text-gray-600">${dateTxt}</td>
-          <td class="p-3 text-center">${photoCell}</td>
-          <td class="p-3 font-semibold">${item.name}</td>
-          <td class="p-3 text-center">${item.qty}</td>
-          <td class="p-3 text-center text-gray-600 font-semibold">${item.sqft > 0 ? item.sqft.toFixed(2) + ' sqft' : '-'}</td>
-          ${isAdmin ? `<td class="p-3 text-right">₹${(item.rate || 0).toFixed(2)}</td>` : ""}
-          ${isAdmin ? `<td class="p-3 text-right font-semibold">₹${(item.amount || 0).toFixed(2)}</td>` : ""}
-          <td class="p-3 text-center flex justify-center gap-2">
-            <button onclick="openEditModal('${item.firebaseId}')" class="text-blue-600 hover:text-blue-800 font-bold text-xs">Edit</button>
-            <button onclick="deleteItem('${item.firebaseId}')" class="text-red-500 hover:text-red-700 font-bold text-xs">Delete</button>
-          </td>
+      siteList.forEach((item, index) => {
+        grandTotal += item.amount;
+        tbody.innerHTML += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${item.name}</td>
+            <td>${item.unit}</td>
+            <td>₹${item.rate}</td>
+            <td><b>${item.qty}</b></td>
+            <td>₹${item.amount.toFixed(2)}</td>
+            <td>
+              <button class="btn-delete" onclick="deleteItem(${index})">Delete</button>
+            </td>
+          </tr>
         `;
-        tbody.appendChild(row);
       });
 
-      if (isAdmin) document.getElementById("grandTotal").innerText = `₹${total.toFixed(2)}`;
+      document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
     }
 
-    function downloadPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const companyName = document.getElementById("companyDisplay").innerText;
-      const isAdmin = currentRole === "admin";
-      const logoImg = document.getElementById("companyLogoDisplay");
-
-      const filteredItems = selectedDateFilter 
-        ? items.filter(i => i.date === selectedDateFilter)
-        : items;
-
-      try {
-        if (logoImg && logoImg.src && logoImg.style.display !== 'none') {
-          doc.addImage(logoImg, 'PNG', 14, 10, 20, 20);
-          doc.setFontSize(16);
-          doc.text(companyName, 38, 18);
-          doc.setFontSize(11);
-          doc.text(`Site: ${currentSiteName} ${selectedDateFilter ? '(Date: '+selectedDateFilter+')' : ''}`, 38, 25);
-        } else {
-          doc.setFontSize(16);
-          doc.text(companyName, 14, 15);
-          doc.setFontSize(11);
-          doc.text(`Site: ${currentSiteName} ${selectedDateFilter ? '(Date: '+selectedDateFilter+')' : ''}`, 14, 22);
-        }
-      } catch (e) {
-        doc.setFontSize(16);
-        doc.text(companyName, 14, 15);
-        doc.setFontSize(11);
-        doc.text(`Site: ${currentSiteName}`, 14, 22);
-      }
-
-      doc.setFontSize(9);
-      doc.text(`Report Generated on: ${new Date().toLocaleDateString()}`, 14, 32);
-
-      const tableHeaders = isAdmin 
-        ? [["#", "Date", "Item Description", "Qty", "Total Sqft", "Rate (INR)", "Amount (INR)"]]
-        : [["#", "Date", "Item Description", "Qty", "Total Sqft"]];
-
-      const tableRows = filteredItems.map((item, index) => {
-        const sqftTxt = item.sqft > 0 ? item.sqft.toFixed(2) : "-";
-        const dTxt = item.date || "-";
-        return isAdmin 
-          ? [index + 1, dTxt, item.name, item.qty, sqftTxt, (item.rate || 0).toFixed(2), (item.amount || 0).toFixed(2)]
-          : [index + 1, dTxt, item.name, item.qty, sqftTxt];
-      });
-
-      if (isAdmin) {
-        const grandTotal = filteredItems.reduce((sum, i) => sum + (i.amount || 0), 0);
-        tableRows.push(["", "", "", "", "", "Total:", `INR ${grandTotal.toFixed(2)}`]);
-      }
-
-      doc.autoTable({
-        startY: 36,
-        head: tableHeaders,
-        body: tableRows,
-        theme: 'striped',
-        headStyles: { fillStyle: [30, 58, 138] }
-      });
-
-      doc.save(`${companyName.replace(/\s+/g, '_')}_${currentSiteName.replace(/\s+/g, '_')}_History.pdf`);
-    }
+    populateDropdown();
+    renderTable();
   </script>
 </body>
 </html>
